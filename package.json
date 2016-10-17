@@ -27,9 +27,9 @@
     "eslint-config-taskcluster": "^2.0.0",
     "eslint-plugin-taskcluster": "^1.0.0",
     "mocha": "^2.2.5",
+    "source-map-support": "^0.4.0",
     "taskcluster-base": "^6.2.0",
     "taskcluster-lib-log": "^1.0.3",
-    "source-map-support": "^0.4.0",
     "uuid": "^2.0.2"
   },
   "engines": {

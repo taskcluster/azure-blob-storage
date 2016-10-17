@@ -1,18 +1,17 @@
-let log = require('../lib/log');
 let subject = require('../lib/container');
-let main = require('../lib/main');
 let assume = require('assume');
 let uuid = require('uuid');
 
 describe('Azure Blob Container', () => {
-  let cfg;
   let containerName = uuid.v4();
-  log.debug('container name: ' + containerName);
+  let accountName = 'accountNameTest';
+
+  let accountKeyString = new Buffer('JavaScript');
+  let accountKey = accountKeyString.toString('base64');
   let container;
 
   before(async () => {
-    cfg = await main('cfg', {profile: 'test', process: 'test'});
-    container = await subject(cfg.azureBlob.accountName, cfg.azureBlob.accountKey, containerName);
+    container = await subject(accountName, accountKey, containerName);
   });
 
   after(async () => {
@@ -21,7 +20,6 @@ describe('Azure Blob Container', () => {
 
   it('should be able to create, read, update and delete a blob', async () => {
     let blobName = uuid.v4();
-    log.debug('blob name: ' + blobName);
     let expected = {
       a: uuid.v4(),
     };
@@ -37,7 +35,6 @@ describe('Azure Blob Container', () => {
 
   it('should allow overwriting', async () => {
     let blobName = uuid.v4();
-    log.debug('blob name: ' + blobName);
     let expected = {
       a: uuid.v4(),
     };
@@ -62,5 +59,4 @@ describe('Azure Blob Container', () => {
   it('should not fail to delete an absent blob', async () => {
     await container.remove(uuid.v4());
   });
-
 });
