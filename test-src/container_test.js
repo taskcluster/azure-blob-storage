@@ -4,10 +4,8 @@ let uuid = require('uuid');
 
 describe('Azure Blob Container', () => {
   let containerName = uuid.v4();
-  let accountName = 'accountNameTest';
-
-  let accountKeyString = new Buffer('JavaScript');
-  let accountKey = accountKeyString.toString('base64');
+  let accountName = process.env.AZURE_ACCOUNT_NAME;
+  let accountKey = process.env.AZURE_ACCOUNT_KEY;
   let container;
 
   before(async () => {
