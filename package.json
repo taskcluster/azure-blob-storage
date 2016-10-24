@@ -10,7 +10,7 @@
     "pretest": "npm run compile",
     "lint": "eslint src/*.js test-src/*.js",
     "lintfix": "eslint --fix src/*.js test-src/*.js",
-    "test": "npm run lint && NODE_ENV=test mocha test/*_test.js",
+    "test": "npm run lint && mocha test/*_test.js",
     "prepublish": "npm run compile"
   },
   "repository": {
@@ -18,17 +18,17 @@
     "url": "https://github.com/elenasolomon/azure-blob-storage.git"
   },
   "devDependencies": {
-    "babel-eslint": "^7.0.0",
+    "assume": "^1.2.5",
     "babel-compile": "^2.0.0",
+    "babel-eslint": "^6.0.0",
     "babel-preset-taskcluster": "^3.0.0",
     "eslint": "^2.10.2",
     "eslint-config-taskcluster": "^2.0.0",
-    "eslint-plugin-taskcluster": "^1.0.0"
+    "eslint-plugin-taskcluster": "^1.0.0",
+    "mocha": "^2.2.5"
   },
   "dependencies": {
-    "assume": "^1.2.5",
     "azure-storage": "^1.0.1",
-    "mocha": "^2.2.5",
     "uuid": "^2.0.2"
   },
   "engines": {
