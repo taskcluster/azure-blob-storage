@@ -1,14 +1,20 @@
 let subject = require('../lib/container');
 let assume = require('assume');
 let uuid = require('uuid');
+let config = require('typed-env-config');
+let debug = require('debug')('test:container');
 
 describe('Azure Blob Container', () => {
   let containerName = uuid.v4();
-  let accountName = process.env.AZURE_ACCOUNT_NAME;
-  let accountKey = process.env.AZURE_ACCOUNT_KEY;
+  let accountName;
+  let accountKey;
   let container;
 
   before(async () => {
+    // Load configuration
+    let cfg = config({});
+    accountName = cfg.azureBlob.accountName;
+    accountKey = cfg.azureBlob.accountKey;
     container = await subject(accountName, accountKey, containerName);
   });
 
@@ -18,6 +24,7 @@ describe('Azure Blob Container', () => {
 
   it('should be able to create, read, update and delete a blob', async () => {
     let blobName = uuid.v4();
+    debug('blob name: ' + blobName);
     let expected = {
       a: uuid.v4(),
     };
@@ -33,6 +40,7 @@ describe('Azure Blob Container', () => {
 
   it('should allow overwriting', async () => {
     let blobName = uuid.v4();
+    debug('blob name: ' + blobName);
     let expected = {
       a: uuid.v4(),
     };
