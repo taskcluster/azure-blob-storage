@@ -40,7 +40,7 @@ describe('Azure Blob Container', () => {
     container.remove(blobName);
   });
 
-  it.only('should be able to list blobs', async () => {
+  it('should be able to list blobs', async () => {
     let blobName = uuid.v4();
     let data = {
       a: uuid.v4(),
