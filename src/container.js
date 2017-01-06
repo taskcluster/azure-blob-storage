@@ -1,5 +1,5 @@
-let assert = require('assert');
-let azure = require('azure-storage');
+import assert from 'assert';
+import azure from 'azure-storage';
 
 /**
  * Wrap an Azure Blob Storage container and provide convenience methods.  Note
@@ -85,6 +85,22 @@ class Container {
           return rej(err);
         }
         return res();
+      });
+    });
+  }
+
+  /**
+   * List blobs
+   */
+  async listBlobs() {
+    return new Promise((res, rej) => {
+      this.svc.listBlobsSegmented(this.container, null, (err, response) => {
+        console.log(err);
+        console.log(response);
+        if (err) {
+          return rej(err);
+        }
+        return res(response);
       });
     });
   }

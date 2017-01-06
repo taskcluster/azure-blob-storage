@@ -38,6 +38,24 @@ describe('Azure Blob Container', () => {
     container.remove(blobName);
   });
 
+  it.only('should be able to list blobs', async () => {
+    let blobName = uuid.v4();
+    let data = {
+      a: uuid.v4(),
+    };
+
+    await container.write(blobName, data);
+    let blobName2 = uuid.v4();
+    await container.write(blobName2, data);
+    let blobName3 = uuid.v4();
+    await container.write(blobName3, data);
+
+    let listResult = await container.listBlobs();
+    console.dir(listResult);
+    assume(listResult.entries).is.size(3);
+    assume(listResult.continuationToken).equals(null);
+  });
+
   it('should allow overwriting', async () => {
     let blobName = uuid.v4();
     debug('blob name: ' + blobName);
