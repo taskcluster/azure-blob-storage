@@ -13,9 +13,9 @@ class Container {
    * Static initialization code
    */
   constructor(accountName, accountKey, container) {
-    assert(typeof accountName === 'string');
-    assert(typeof accountKey === 'string');
-    assert(typeof container === 'string');
+    assert(typeof accountName === 'string', 'missing account name');
+    assert(typeof accountKey === 'string', 'missing account key');
+    assert(typeof container === 'string', 'missing container name');
 
     this.svc = azure.createBlobService(accountName, accountKey);
     this.container = container;
@@ -40,8 +40,8 @@ class Container {
    * `blobName`
    */
   async write(blobName, contents) {
-    assert(typeof blobName === 'string');
-    assert(typeof contents !== 'undefined');
+    assert(typeof blobName === 'string', 'missing blobName');
+    assert(typeof contents !== 'undefined', 'missing contents');
     return new Promise((res, rej) => {
       let data = JSON.stringify({
         content: contents,
@@ -61,7 +61,7 @@ class Container {
    * resolution value
    */
   async read(blobName) {
-    assert(typeof blobName === 'string');
+    assert(typeof blobName === 'string', 'missing blobName');
     return new Promise((res, rej) => {
       this.svc.getBlobToText(this.container, blobName, (err, text) => {
         if (err) {
@@ -78,7 +78,7 @@ class Container {
    * Remove `blobName`
    */
   async remove(blobName) {
-    assert(typeof blobName === 'string');
+    assert(typeof blobName === 'string', 'missing blobName');
     return new Promise((res, rej) => {
       this.svc.deleteBlob(this.container, blobName, (err, response) => {
         if (err && err.code !== 'BlobNotFound') {

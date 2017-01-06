@@ -16,6 +16,8 @@ describe('Azure Blob Container', () => {
     accountName = cfg.azureBlob.accountName;
     accountKey = cfg.azureBlob.accountKey;
     container = await subject(accountName, accountKey, containerName);
+    assume(accountName).is.ok();
+    assume(accountKey).is.ok();
   });
 
   after(async () => {
