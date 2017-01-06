@@ -6,83 +6,62 @@ let debug = require('debug')('test:container');
 
 describe('Azure Blob Container', () => {
   let containerName = uuid.v4();
-  let accountName;
-  let accountKey;
+  let accountId;
+  let accessKey;
   let container;
 
   before(async () => {
     // Load configuration
     let cfg = config({});
-    accountName = cfg.azureBlob.accountName;
-    accountKey = cfg.azureBlob.accountKey;
-    container = await subject(accountName, accountKey, containerName);
-    assume(accountName).is.ok();
-    assume(accountKey).is.ok();
+    accountId = cfg.azureBlob.accountId;
+    accessKey = cfg.azureBlob.accessKey;
+    assume(accountId).is.ok();
+    assume(accessKey).is.ok();
   });
 
   after(async () => {
-    await container.removeContainer();
   });
 
-  it('should be able to create, read, update and delete a blob', async () => {
-    let blobName = uuid.v4();
-    debug('blob name: ' + blobName);
-    let expected = {
-      a: uuid.v4(),
-    };
+  it('should create, list and delete a container', async () => {
+    let name = uuid.v4();
+    debug('name: ' + name);
 
-    await container.write(blobName, expected);
+    let account = new subject.Account({
+      accountId,
+      accessKey,
+    });
 
-    let readValue = await container.read(blobName);
+    debug('ensuring container absence');
+    let list = await account.listContainers({
+      prefix: name,
+    });
+    assume(list).is.array();
+    assume(list.length).equals(0);
 
-    assume(readValue).deeply.equals(expected);
+    debug('creating container');
+    await account.createContainer({
+      name,
+    });
 
-    container.remove(blobName);
-  });
+    debug('listing container');
+    let list2 = await account.listContainers({
+      prefix: name,
+    });
+    assume(list2).is.array();
+    assume(list2.length).equals(1);
+    assume(list2[0] instanceof subject.Container).is.ok();
 
-  it('should be able to list blobs', async () => {
-    let blobName = uuid.v4();
-    let data = {
-      a: uuid.v4(),
-    };
+    debug('deleting container');
+    await account.deleteContainer({
+      name,
+    });
+    
+    debug('ensuring container absence');
+    let list3 = await account.listContainers({
+      prefix: name,
+    });
+    assume(list3).is.array();
+    assume(list3.length).equals(0);
 
-    await container.write(blobName, data);
-    let blobName2 = uuid.v4();
-    await container.write(blobName2, data);
-    let blobName3 = uuid.v4();
-    await container.write(blobName3, data);
-
-    let listResult = await container.listBlobs();
-    console.dir(listResult);
-    assume(listResult.entries).is.size(3);
-    assume(listResult.continuationToken).equals(null);
-  });
-
-  it('should allow overwriting', async () => {
-    let blobName = uuid.v4();
-    debug('blob name: ' + blobName);
-    let expected = {
-      a: uuid.v4(),
-    };
-    await container.write(blobName, expected);
-    expected.a = uuid.v4();
-    await container.write(blobName, expected);
-    let readValue = await container.read(blobName);
-    assume(readValue).deeply.equals(expected);
-    container.remove(blobName);
-  });
-
-  it('should cause error when reading missing blob', async done => {
-    try {
-      await container.read(uuid.v4());
-      done(new Error('shouldnt reach here'));
-    } catch (err) {
-      assume(err.code).equals('BlobNotFound');
-      done();
-    }
-  });
-
-  it('should not fail to delete an absent blob', async () => {
-    await container.remove(uuid.v4());
   });
 });

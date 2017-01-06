@@ -1,130 +1,67 @@
 import assert from 'assert';
-import azure from 'azure-storage';
+import azure from 'fast-azure-storage';
 
-/**
- * Wrap an Azure Blob Storage container and provide convenience methods.  Note
- * that you must call and wait for the init(); method after creating an
- * instance of this class.
- *
- * TODO: implement listing blobs
- */
+class Account {
+  constructor(opts) {
+    assert(typeof opts.accountId === 'string');
+    if (opts.accessKey) {
+      assert(typeof opts.accessKey === 'string');
+    }
+    this.accountId = opts.accountId;
+    this.accessKey = opts.accessKey || undefined;
+    this.blobsvc = new azure.Blob({
+      accountId: opts.accountId, 
+      accessKey: opts.accessKey,
+    });
+  }
+    
+  async listContainers(opts) {
+    if (!opts) {
+      opts = {};
+    }
+    if (opts.prefix) {
+      assert(typeof opts.prefix === 'string');
+    }
+    let containers = [];
+    let marker;
+    do {
+      let result = await this.blobsvc.listContainers({
+        prefix: opts.prefix || undefined,
+        marker: marker,
+      });
+
+      marker = result.marker || undefined;
+      result.containers.forEach(container => {
+        //containers.push(container);
+        containers.push(new Container());
+      });
+    } while (marker);
+    return containers;
+  }
+
+  async createContainer(opts) {
+    return this.blobsvc.createContainer(opts.name);
+  }
+
+  async deleteContainer(opts) {
+    return this.blobsvc.deleteContainer(opts.name);
+  }
+
+  setProperties() { }
+    
+  getProperties() { }
+}
+
 class Container {
-  /**
-   * Static initialization code
-   */
-  constructor(accountName, accountKey, container) {
-    assert(typeof accountName === 'string', 'missing account name');
-    assert(typeof accountKey === 'string', 'missing account key');
-    assert(typeof container === 'string', 'missing container name');
-
-    this.svc = azure.createBlobService(accountName, accountKey);
-    this.container = container;
-  }
-
-  /**
-   * Mandatory async init operations
-   */
-  async init() {
-    return new Promise((res, rej) => {
-      this.svc.createContainerIfNotExists(this.container, (err, result, response) => {
-        if (err) {
-          return rej(err);
-        }
-        return res();
-      });
-    });
-  }
-
-  /**
-   * Serialize `contents` into JSON and store it as a BlockBlob named
-   * `blobName`
-   */
-  async write(blobName, contents) {
-    assert(typeof blobName === 'string', 'missing blobName');
-    assert(typeof contents !== 'undefined', 'missing contents');
-    return new Promise((res, rej) => {
-      let data = JSON.stringify({
-        content: contents,
-        version: 1,
-      });
-      this.svc.createBlockBlobFromText(this.container, blobName, data, (err, result, response) => {
-        if (err) {
-          return rej(err);
-        }
-        return res();
-      });
-    });
-  }
-  
-  /**
-   * Read `blobName` and parse it as JSON and provide that value as the
-   * resolution value
-   */
-  async read(blobName) {
-    assert(typeof blobName === 'string', 'missing blobName');
-    return new Promise((res, rej) => {
-      this.svc.getBlobToText(this.container, blobName, (err, text) => {
-        if (err) {
-          return rej(err);
-        }
-        let data = JSON.parse(text);
-        assert(data.version === 1, 'Unexpected Blob Storage format');
-        return res(data.content);
-      });
-    });
-  }
-
-  /**
-   * Remove `blobName`
-   */
-  async remove(blobName) {
-    assert(typeof blobName === 'string', 'missing blobName');
-    return new Promise((res, rej) => {
-      this.svc.deleteBlob(this.container, blobName, (err, response) => {
-        if (err && err.code !== 'BlobNotFound') {
-          return rej(err);
-        }
-        return res();
-      });
-    });
-  }
-
-  /**
-   * List blobs
-   */
-  async listBlobs() {
-    return new Promise((res, rej) => {
-      this.svc.listBlobsSegmented(this.container, null, (err, response) => {
-        console.log(err);
-        console.log(response);
-        if (err) {
-          return rej(err);
-        }
-        return res(response);
-      });
-    });
-  }
-
-  /**
-   * Remove the Container associated with this instance
-   */
-  async removeContainer() {
-    return new Promise((res, rej) => {
-      this.svc.deleteContainer(this.container, (err, response) => {
-        if (err) {
-          return rej(err);
-        }
-        return res();
-      });
-    });
-  }
 
 }
 
-async function ContainerFactory(accountName, accountKey, container) {
-  let c = new Container(accountName, accountKey, container);
-  await c.init();
-  return c;
+class Blob {
+
 }
 
-module.exports = ContainerFactory;
+module.exports = {
+  Account,
+  Container,
+  Blob,
+};
