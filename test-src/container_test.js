@@ -40,7 +40,7 @@ describe('Azure Blob Container', () => {
 
     debug('creating container');
     await account.createContainer({
-      name,
+      name
     });
 
     debug('listing container');
@@ -62,6 +62,5 @@ describe('Azure Blob Container', () => {
     });
     assume(list3).is.array();
     assume(list3.length).equals(0);
-
   });
 });
