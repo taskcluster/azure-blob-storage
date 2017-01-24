@@ -8,23 +8,20 @@ const MAX_MODIFY_ATTEMPTS = 10;
 
 class Blob {
 
-  constructor(name, options) {
+  constructor(options) {
     options = options || {};
     this.container = options.container;
     this.blobServiceAccount = options.blobSeviceAccount;
-    this.name = name;
+    this.name = options.name;
     this.type = options.type;
-  }
-
-  async create(options, content) {
-    let blobOptions = {
-      blobType: this.type,
-    };
-    await this.blobServiceAccount.putBlob(this.container.name, this.name, blobOptions, content);
+    this.eTag = options.eTag;
+    this.contentType = options.contentType;
+    this.contentLanguage = options.contentLanguage;
+    this.contentDisposition = options.contentDisposition;
   }
 }
 
-class DataBlob extends Blob {
+class BlockBlob extends Blob {
 
   constructor(options) {
     options.type = 'BlockBlob';
@@ -32,13 +29,36 @@ class DataBlob extends Blob {
   }
 
   async create(options, content) {
+    await this.blobServiceAccount.putBlob(options, content); // this is ok only for small files
+  }
+}
+
+class AppendBlob extends Blob {
+
+  constructor(options) {
+    options.type = 'AppendBlob';
+    super(options);
+  }
+
+  async create(options) {
+    super.create(options);
+  }
+}
+
+class DataBlockBlob extends BlockBlob {
+
+  constructor(options) {
+    super(options);
+  }
+
+  static async create(options, content) {
     // 1. Validate the content against the schema
     // 2. store the blob
     super.create(options, content);
   }
 
   async update(options, modifier) {
-    assert(modifier instanceof Function, 'The `mutator` must be a function.');
+    assert(modifier instanceof Function, 'The `modifier` must be a function.');
 
     // Attempt to modify this object
     let attemptsLeft = MAX_MODIFY_ATTEMPTS;
@@ -57,7 +77,11 @@ class DataBlob extends Blob {
         const options = {
           ifMatch: blob.eTag,
         };
-        await this.blobServiceAccount.putBlob(this.container.name, this.name, blob.properties, options, modifiedContent);
+        await this.blobServiceAccount.putBlob(this.container.name,
+                                              this.name,
+                                              blob.properties,
+                                              options,
+                                              modifiedContent);
 
       } catch (error) {
         // rethrow error, if it's not caused by optimistic concurrency
@@ -79,15 +103,10 @@ class DataBlob extends Blob {
   }
 }
 
-class AppendDataBlob extends Blob {
+class AppendDataBlob extends AppendBlob {
 
   constructor(options) {
-    options.type = 'AppendData';
     super(options);
-  }
-
-  async create(options, content) {
-    super.create(options);
   }
 
   async append(options, content) {
@@ -99,6 +118,8 @@ class AppendDataBlob extends Blob {
 
 module.exports = {
   Blob,
-  DataBlob,
+  BlockBlob,
+  AppendBlob,
+  DataBlockBlob,
   AppendDataBlob,
 };

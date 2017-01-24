@@ -7,16 +7,6 @@ import Container from './container';
 
 class Account {
 
-  /**
-   *
-   * @param {object} options - Options on the following form
-   * ```js
-   * {
-   *    accountId: '...',         // Azure storage accountId (required)
-   *    accessKey: '...',         // Azure shared accessKey, required unless options.sas is given
-   * }
-   * ```
-   */
   constructor(options) {
     options = options || {};
     assert(typeof options.accountId === 'string', 'The `options.accountId` must be specified and must be a string.');
@@ -31,19 +21,6 @@ class Account {
     });
   }
 
-  /**
-   *
-   * @param {object} options - Options on the following form
-   * ```js
-   * {
-   *   prefix:          '...',    // Prefix of containers to list
-   *   metadata:        false     // Whether or not to include metadata
-   *   maxResults: ???
-   * }
-   * ```
-   *
-   * @returns {Array}
-   */
   async listContainers(options) {
     options = options || {};
 
@@ -87,7 +64,7 @@ class Account {
     }
   }
 
-  // Schema nu este obligatorie. Daca este specficiata ea va fi salvata in metadata.
+  // The schema is optional ?!
   async createContainer(name, options) {
     options = options || {};
     if (options.schema) {

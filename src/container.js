@@ -2,7 +2,7 @@ import assert from 'assert';
 import _debug from 'debug';
 const debug = _debug('azure-blob-storage:container');
 import {rethrowDebug} from './utils';
-import {Blob} from './blob';
+import {Blob, DataBlockBlob} from './blob';
 
 class Container {
 
@@ -23,17 +23,10 @@ class Container {
 
     try {
       await this.blobSeviceAccount.setContainerMetadata(this.name, metadata);
+      this.metadata = metadata;
     } catch (error) {
       rethrowDebug(`Failed to update metadata for container "${this.name}" with error: ${error}`);
     }
-  }
-
-  async createDataBlob(name, options, content) {
-    options = options || {};
-    options.contentType = 'text/plain; charset="utf-8"';
-    let dataBlob = new DataBlob(name, options, content);
-    await dataBlob.create(options, content);
-    // TODO return the newly created blob
   }
 
   async listBlobs(options) {
@@ -53,7 +46,7 @@ class Container {
           blob.push(new Blob({
             container: this,
             blobServiceAccount: this.blobSeviceAccount,
-            type: blob.properties.blobType,
+            type: blob.blobType,
             name: blob.name,
           }));
         });
@@ -72,9 +65,24 @@ class Container {
       return true;
     } catch (error) {
       if (!ignoreIfNotExists || !error || error.code !== 'ContainerNotFound') {
-        rethrowDebug(`Failed to delete blob "${this.name}" with error: ${error}`);
+        rethrowDebug(`Failed to delete blob "${this.name}" with error: ${error}, ${error.stack}`);
       }
       return false;
+    }
+  }
+
+  async createDataBlob(options, content) {
+    options = options || {};
+    options.contentType = 'text/plain; charset="utf-8"';
+
+    try {
+      let result = await this.blobSeviceAccount.putBlob(options, content);
+      let dataBlob = new DataBlockBlob(options);
+      dataBlob.eTag = result.eTag;
+
+      return dataBlob;
+    } catch (error) {
+      rethrowDebug(`Failed to create the data blob "${this.name}" with error: ${error}, ${error.stack}`);
     }
   }
 
