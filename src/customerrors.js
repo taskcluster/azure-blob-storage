@@ -1,17 +1,32 @@
 class ExtendableError extends Error {
-  constructor(message) {
+  constructor(message, name, code) {
     super(message);
-    this.name = this.constructor.name;
-    if (typeof Error.captureStackTrace === 'function') {
-      Error.captureStackTrace(this, this.constructor);
-    } else {
-      this.stack = (new Error(message)).stack;
-    }
+    this.name = name;
+    this.code = code;
+    Error.captureStackTrace(this, ExtendableError);
   }
 }
 
-class CongestionError extends ExtendableError {}
+class CongestionError extends ExtendableError {
+  constructor(message) {
+    super(message, 'CongestionError', 'CongestionError');
+  }
+}
+
+class BlobDoesNotConformToSchema extends ExtendableError {
+  constructor(message) {
+    super(message, 'BlobDoesNotConformToSchema', 'BlobDoesNotConformToSchema');
+  }
+}
+
+class BlobNotSerializable extends ExtendableError {
+  constructor(message) {
+    super(message, 'BlobNotSerializable', 'BlobNotSerializable');
+  }
+}
 
 module.exports = {
   CongestionError,
+  BlobDoesNotConformToSchema,
+  BlobNotSerializable,
 };

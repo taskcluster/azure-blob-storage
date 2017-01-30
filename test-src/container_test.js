@@ -1,4 +1,4 @@
-import Account from '../lib/account';
+import BlobStorage from '../lib/blobstorage';
 import Container from '../lib/container';
 import assume from 'assume';
 import uuid from 'uuid';
@@ -6,12 +6,11 @@ import config from 'typed-env-config';
 import _debug from 'debug';
 const debug = _debug('test:container');
 
-describe('Azure Blob Container', () => {
-  let containerName = uuid.v4();
+describe('Azure Blob Storage - Container', () => {
   let accountId;
   let accessKey;
-  let container;
-  let account;
+  let blobStorage;
+  const containerNamePrefix = 'test';
 
   before(async () => {
     // Load configuration
@@ -20,49 +19,95 @@ describe('Azure Blob Container', () => {
     accessKey = cfg.azureBlob.accessKey;
     assume(accountId).is.ok();
     assume(accessKey).is.ok();
-    account = new Account({
-      accountId,
-      accessKey,
+    blobStorage = new BlobStorage({
+      credentials: {
+        accountId,
+        accessKey,
+      },
     });
   });
 
   after(async () => {
+    // delete all containers
+    let containers = await blobStorage.listContainers({
+      prefix: containerNamePrefix,
+    });
+
+    await Promise.all(containers.map((container) => {
+      return blobStorage.deleteContainer({
+        name: container.name,
+      });
+    }));
   });
 
   it('should create, list and delete a container', async () => {
-    let name = uuid.v4();
-    debug('name: ' + name);
+    let name = `${containerNamePrefix}${uuid.v4()}`;
+    debug(`name: ${name}`);
 
     debug('ensuring container absence');
-    let list = await account.listContainers({
+    let list = await blobStorage.listContainers({
       prefix: name,
     });
     assume(list).is.array();
     assume(list.length).equals(0);
 
     debug('creating container');
-    let cont = await account.createContainer(name);
-    assume(cont instanceof Container).is.ok();
+    let container = await blobStorage.createContainer({
+      name,
+    });
+    assume(container instanceof Container).is.ok();
 
     debug('listing container');
-    let list2 = await account.listContainers({
+    let list2 = await blobStorage.listContainers({
       prefix: name,
     });
-    debug(list2);
     assume(list2).is.array();
     assume(list2.length).equals(1);
     assume(list2[0] instanceof Container).is.ok();
 
     debug('deleting container');
-    await account.deleteContainer({
+    await blobStorage.deleteContainer({
       name,
     });
     
     debug('ensuring container absence');
-    let list3 = await account.listContainers({
+    let list3 = await blobStorage.listContainers({
       prefix: name,
     });
     assume(list3).is.array();
     assume(list3.length).equals(0);
+  });
+
+  it('should create, load and delete a container which has an associated schema', async () => {
+    let name = `${containerNamePrefix}${uuid.v4()}`;
+    debug(`container name: ${name}`);
+
+    debug('creating container with an associated schema');
+    let schema = '{"$schema":      "http://json-schema.org/draft-04/schema#",' +
+      '"title":        "test json schema",' +
+      '"type":         "object",' +
+      '"properties": {' +
+      '"value": {' +
+      '"type":           "integer"' +
+      '}' +
+      '},' +
+      '"additionalProperties":   false,' +
+      '"required": ["value"]' +
+      '}';
+
+    let schemaObj = JSON.parse(schema);
+    let newContainer = await blobStorage.createContainer({
+      name: name,
+      schema: schemaObj,
+    });
+    assume(newContainer instanceof Container).is.ok();
+    assume(newContainer.schemaId).equals(`http://schemas.taskcluster.net/${name}#`);
+
+    debug(`load the container: ${name}`);
+    let container = await blobStorage.loadContainer({
+      name,
+    });
+    assume(container instanceof Container).is.ok();
+    assume(container.schemaId).equals(`http://schemas.taskcluster.net/${name}#`);
   });
 });
