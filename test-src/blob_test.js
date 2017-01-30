@@ -12,6 +12,7 @@ describe('Azure Blob Storage - Blob', () => {
   let accessKey;
   let blobStorage;
   const containerNamePrefix = 'test';
+  const blobNamePrefix = 'blob';
   let container;
 
   before(async () => {
@@ -32,6 +33,7 @@ describe('Azure Blob Storage - Blob', () => {
     debug(`container name: ${name}`);
 
     debug('creating container with an associated schema');
+    // TODO - move this in a file
     let schema = '{"$schema":      "http://json-schema.org/draft-04/schema#",' +
       '"title":        "test json schema",' +
       '"type":         "object",' +
@@ -60,7 +62,7 @@ describe('Azure Blob Storage - Blob', () => {
   });
 
   it('should create, list, load and delete a data block blob', async () => {
-    let blobName = 'blobTest1';
+    let blobName = `${blobNamePrefix}${uuid.v4()}`;
     debug(`create a blob with name: ${blobName}`);
     let blob = await container.createDataBlob({
       name: blobName,
@@ -87,7 +89,7 @@ describe('Azure Blob Storage - Blob', () => {
   });
 
   it('try create a data blob with wrong data', async() => {
-    let blobName = 'blobTest2';
+    let blobName = `${blobNamePrefix}${uuid.v4()}`;
     debug(`create a blob with name: ${blobName}`);
     let blob = await container.createDataBlob({
       name: blobName,
@@ -109,7 +111,7 @@ describe('Azure Blob Storage - Blob', () => {
   });
 
   it('should create, update a data block blob', async () => {
-    let blobName = 'blobTest3';
+    let blobName = `${blobNamePrefix}${uuid.v4()}`;
     debug(`create a blob with name: ${blobName}`);
     let blob = await container.createDataBlob({
       name: blobName,
@@ -134,7 +136,7 @@ describe('Azure Blob Storage - Blob', () => {
   });
 
   it('try update a data blob with wrong data', async() => {
-    let blobName = 'blobTest4';
+    let blobName = `${blobNamePrefix}${uuid.v4()}`;
     debug(`create a blob with name: ${blobName}`);
     let blob = await container.createDataBlob({
       name: blobName,
