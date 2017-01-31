@@ -52,7 +52,7 @@ describe('Azure Blob Storage - Blob', () => {
       schema: schemaObj,
     });
     assume(container instanceof Container).is.ok();
-    assume(container.schemaId).equals(`http://schemas.taskcluster.net/${name}#`);
+    assume(container.schemaId).equals(`${blobStorage.jsonSchemaNameBaseURL}${name}/.schema.blob.json#`);
   });
 
   after(async () => {
@@ -107,7 +107,7 @@ describe('Azure Blob Storage - Blob', () => {
     }
 
     assume(createError).exists();
-    assume(createError.code).equals('BlobDoesNotConformToSchema');
+    assume(createError.code).equals('SchemaValidationError');
   });
 
   it('should create, update a data block blob', async () => {
@@ -160,6 +160,6 @@ describe('Azure Blob Storage - Blob', () => {
       updateError = error;
     }
     assume(updateError).exists();
-    assume(updateError.code).equals('BlobDoesNotConformToSchema');
+    assume(updateError.code).equals('SchemaValidationError');
   });
 });

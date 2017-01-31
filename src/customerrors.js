@@ -13,20 +13,20 @@ class CongestionError extends ExtendableError {
   }
 }
 
-class BlobDoesNotConformToSchema extends ExtendableError {
+class SchemaValidationError extends ExtendableError {
   constructor(message) {
-    super(message, 'BlobDoesNotConformToSchema', 'BlobDoesNotConformToSchema');
+    super(message, 'SchemaValidationError', 'SchemaValidationError');
   }
 }
 
-class BlobNotSerializable extends ExtendableError {
+class BlobSerializationError extends ExtendableError {
   constructor(message) {
-    super(message, 'BlobNotSerializable', 'BlobNotSerializable');
+    super(message, 'BlobSerializationError', 'BlobSerializationError');
   }
 }
 
 module.exports = {
   CongestionError,
-  BlobDoesNotConformToSchema,
-  BlobNotSerializable,
+  SchemaValidationError,
+  BlobSerializationError,
 };

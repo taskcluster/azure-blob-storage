@@ -101,13 +101,13 @@ describe('Azure Blob Storage - Container', () => {
       schema: schemaObj,
     });
     assume(newContainer instanceof Container).is.ok();
-    assume(newContainer.schemaId).equals(`http://schemas.taskcluster.net/${name}#`);
+    assume(newContainer.schemaId).equals(`${blobStorage.jsonSchemaNameBaseURL}${name}/.schema.blob.json#`);
 
     debug(`load the container: ${name}`);
     let container = await blobStorage.loadContainer({
       name,
     });
     assume(container instanceof Container).is.ok();
-    assume(container.schemaId).equals(`http://schemas.taskcluster.net/${name}#`);
+    assume(container.schemaId).equals(`${blobStorage.jsonSchemaNameBaseURL}${name}/.schema.blob.json#`);
   });
 });

@@ -13,12 +13,6 @@ import Ajv from 'ajv';
 const JSON_SCHEMA_BLOB_NAME = '.schema.blob.json';
 
 /**
- * The base name of the JSON schema used created the schema identifier
- * @const
- */
-const JSON_SCHEMA_NAME_BASE_URL = 'http://schemas.taskcluster.net/';
-
-/**
  * Base class for azure blob storage
  */
 class BlobStorage {
@@ -32,6 +26,17 @@ class BlobStorage {
    *      accountName: '...',       // Azure account name
    *      accessKey: '...',         // Azure account key
    *    }
+   *    // Max number of request retries
+   *   retries:              5,
+   *   // Multiplier for computation of retry delay: 2 ^ retry * delayFactor
+   *   delayFactor:          100,
+   *
+   *   // Randomization factor added as:
+   *   // delay = delay * random([1 - randomizationFactor; 1 + randomizationFactor])
+   *   randomizationFactor:  0.25,
+   *
+   *   // Maximum retry delay in ms (defaults to 30 seconds)
+   *   maxDelay:             30 * 1000,
    * }
    * ```
    *
@@ -52,8 +57,14 @@ class BlobStorage {
     this.blobsvc = new azure.Blob({
       accountId: this.accountId,
       accessKey: this.accessKey,
+      retries: options.retries,
+      delayFactor: options.delayFactor,
+      randomizationFactor: options.randomizationFactor,
+      maxDelay: options.maxDelay,
     });
     this.validator = Ajv({useDefaults: true, format: 'full', verbose: true, allErrors: true});
+    // The base name of the JSON schema used to create the schema identifier
+    this.jsonSchemaNameBaseURL = `http://${this.accountId}.blob.core.windows.net/`;
   }
 
   /**
@@ -87,7 +98,6 @@ class BlobStorage {
             accountId: this.accountId,
             name: container.name,
             metadata: container.metadata,
-            eTag: container.properties.eTag,
           }));
         });
       } while (marker);
@@ -98,9 +108,9 @@ class BlobStorage {
     return containers;
   }
 
-  async _validate(name, schema) {
+  async _validate(containerName, schema) {
     let validate;
-    let schemaId = `${JSON_SCHEMA_NAME_BASE_URL}${name}#`;
+    let schemaId = this._getSchemaId(containerName);
     try {
       let schemaValidation = this.validator.getSchema(schemaId);
       if (schemaValidation) {
@@ -128,6 +138,10 @@ class BlobStorage {
       }
     }
     return validate;
+  }
+
+  _getSchemaId(containerName) {
+    return `${this.jsonSchemaNameBaseURL}${containerName}/${JSON_SCHEMA_BLOB_NAME}#`;
   }
 
   /**
@@ -161,7 +175,7 @@ class BlobStorage {
       blobService: this.blobsvc,
       metadata: containerProps.metadata,
       validate: validate,
-      schemaId: validate ? `${JSON_SCHEMA_NAME_BASE_URL}${options.name}#` : undefined,
+      schemaId: validate ? this._getSchemaId(options.name) : undefined,
     });
   }
 

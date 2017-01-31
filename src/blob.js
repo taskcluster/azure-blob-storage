@@ -1,9 +1,8 @@
 import assert from 'assert';
 import _debug from 'debug';
 const debug = _debug('azure-blob-storage:blob');
-import {CongestionError, BlobDoesNotConformToSchema, BlobNotSerializable} from './customerrors';
-import {rethrowDebug} from './utils';
-import Container from './container';
+import {CongestionError, SchemaValidationError, BlobSerializationError} from './customerrors';
+import {rethrowDebug, sleep, computeDelay} from './utils';
 
 const MAX_MODIFY_ATTEMPTS = 10;
 
@@ -13,7 +12,6 @@ class Blob {
     options = options || {};
     assert(options, 'options must be specified.');
     assert(options.container, 'The container instance, `options.container`, must be specified.');
-    assert(options.container instanceof Container, '`options.container` must be an instance of Container.');
     assert(typeof options.name === 'string', 'The name of the blob, `options.name` must be specified.');
 
     this.container = options.container;
@@ -21,7 +19,6 @@ class Blob {
 
     this.name = options.name;
     this.type = options.type;
-    this.eTag = options.eTag;
     this.contentType = options.contentType;
     this.contentLanguage = options.contentLanguage;
     this.contentDisposition = options.contentDisposition;
@@ -75,7 +72,8 @@ class BlockBlob extends Blob {
     options.blobType = this.type;
 
     try {
-      await this.blobService.putBlob(this.container.name, this.name, options, content);
+      let result = await this.blobService.putBlob(this.container.name, this.name, options, content);
+      this.eTag = result.eTag;
     } catch (error) {
       rethrowDebug(`Failed to update the blob "${this.name}" with error: ${error}`, error);
     }
@@ -99,8 +97,11 @@ class DataBlockBlob extends BlockBlob {
       if (!valid) {
         debug(`Failed to validate the blob content against schema with id: 
             ${this.container.schemaId}, errors: ${this.container.validate.errors}`);
-        throw new BlobDoesNotConformToSchema(`Failed to validate the blob content against schema with id: 
+        let error = new SchemaValidationError(`Failed to validate the blob content against schema with id: 
                                               ${this.container.schemaId}`);
+        error.content = content;
+        error.validationErrors = this.container.validate.errors;
+        throw error;
       }
     }
   }
@@ -112,10 +113,11 @@ class DataBlockBlob extends BlockBlob {
         version: 1,
       });
     } catch (error) {
-      debug(`Failed to serialize the content of the blob: ${this.name}`);
-      throw new BlobNotSerializable(`Failed to serialize the content of the blob: ${this.name}`);
+      debug(`Failed to serialize the content of the blob: ${this.name} with error: ${error}, ${error.stack}`);
+      throw new BlobSerializationError(`Failed to serialize the content of the blob: ${this.name}`);
     }
   }
+
   /**
    * Load the content of this blob.
    */
@@ -134,13 +136,13 @@ class DataBlockBlob extends BlockBlob {
    *
    * @param content - a JSON object
    */
-  async create(json) {
+  async create(content) {
 
     // 1. Validate the content against the schema
-    this._validateJSON(json);
+    this._validateJSON(content);
 
     // 2. store the blob
-    await super.create(this._serialize(json));
+    await super.create(this._serialize(content));
   }
 
   /**
@@ -209,10 +211,14 @@ class DataBlockBlob extends BlockBlob {
           debug('ERROR: MAX_MODIFY_ATTEMPTS exhausted, we might have congestion');
           throw new CongestionError('MAX_MODIFY_ATTEMPTS exhausted, check for congestion');
         }
+
+        await sleep(computeDelay(attemptsLeft,
+                                this.blobService.options.delayFactor,
+                                this.blobService.options.randomizationFactor,
+                                this.blobService.options.maxDelay));
         return attemptModify();
       }
     };
-
     await attemptModify();
   }
 }
