@@ -7,12 +7,6 @@ import Container from './container';
 import Ajv from 'ajv';
 
 /**
- * The name of the blob where the JSON schema is stored
- * @const
- */
-const JSON_SCHEMA_BLOB_NAME = '.schema.blob.json';
-
-/**
  * Base class for azure blob storage
  */
 class BlobStorage {
@@ -63,8 +57,6 @@ class BlobStorage {
       maxDelay: options.maxDelay,
     });
     this.validator = Ajv({useDefaults: true, format: 'full', verbose: true, allErrors: true});
-    // The base name of the JSON schema used to create the schema identifier
-    this.jsonSchemaNameBaseURL = `http://${this.accountId}.blob.core.windows.net/`;
   }
 
   /**
@@ -95,9 +87,9 @@ class BlobStorage {
         result.containers.forEach(container => {
           containers.push(new Container({
             blobService: this.blobsvc,
-            accountId: this.accountId,
             name: container.name,
             metadata: container.metadata,
+            validator: this.validator,
           }));
         });
       } while (marker);
@@ -106,42 +98,6 @@ class BlobStorage {
     }
 
     return containers;
-  }
-
-  async _validate(containerName, schema) {
-    let validate;
-    let schemaId = this._getSchemaId(containerName);
-    try {
-      let schemaValidation = this.validator.getSchema(schemaId);
-      if (schemaValidation) {
-        validate = schemaValidation;
-      } else if (schema) {
-        if (typeof schema !== 'object') {
-          throw new Error('If specified, the `options.schema` must be a JSON schema object.');
-        }
-        schema.id = schemaId;
-
-        // the compile method also checks if the JSON schema is a valid one
-        validate = this.validator.compile(schema);
-      } else {
-        /**
-         * A container can have an associated JSON schema which is store in a blob with name '.schema.blob.json'.
-         */
-        let data = await this.blobsvc.getBlob(options.name, JSON_SCHEMA_BLOB_NAME);
-        let schemaObj = JSON.parse(data).content;
-        schemaObj.id = schemaId;
-        validate = this.validator.compile(schemaObj);
-      }
-    } catch (error) {
-      if (!error || error.code !== 'BlobNotFound') {
-        rethrowDebug(`Failed to load schema with id "${schemaId}" with error: ${error}`, error);
-      }
-    }
-    return validate;
-  }
-
-  _getSchemaId(containerName) {
-    return `${this.jsonSchemaNameBaseURL}${containerName}/${JSON_SCHEMA_BLOB_NAME}#`;
   }
 
   /**
@@ -159,24 +115,14 @@ class BlobStorage {
     assert(options, '`options` must be specified.');
     assert(typeof options.name === 'string', 'The name of the container, `options.name`, must be specified.');
 
-    let containerProps;
-    try {
-      containerProps = await this.blobsvc.getContainerProperties(options.name);
-    } catch (error) {
-      if (!error || error.code !== 'BlobNotFound') {
-        rethrowDebug(`Failed to load container "${options.name}" with error: ${error}`, error);
-      }
-    }
-
-    let validate =  await this._validate(options.name);
-    return new Container({
+    let container = new Container({
       name: options.name,
-      eTag: containerProps.properties.eTag,
       blobService: this.blobsvc,
-      metadata: containerProps.metadata,
-      validate: validate,
-      schemaId: validate ? this._getSchemaId(options.name) : undefined,
+      validator: this.validator,
     });
+    await container.load();
+
+    return container;
   }
 
   /**
@@ -200,47 +146,21 @@ class BlobStorage {
     assert(options, '`options` must be specified.');
     assert(options.name, 'The name of the container, `options.name` must be specified.');
 
-    let eTag;
-    let validate;
-    try {
-      // create the container
-      let createResult = await this.blobsvc.createContainer(options.name, {
-        metadata: options.metadata,
-        publicAccessLevel: options.publicAccessLevel,
-      });
-      eTag = createResult.eTag;
-
-      // store the associated schema if it is specified
-      if (options.schema) {
-        // the schema will be stored in a blob named '.schema.blob.json'
-        let blobOptions = {
-          contentType: 'application/json',
-          blobType: 'BlockBlob',
-        };
-        let payload = JSON.stringify({
-          content: options.schema,
-          version: 1,
-        });
-        let result = await this.blobsvc.putBlob(options.name,
-                                                JSON_SCHEMA_BLOB_NAME,
-                                                blobOptions,
-                                                payload);
-        // get the schema validation function
-        validate = await this._validate(options.name, options.schema);
-      }
-    } catch (error) {
-      rethrowDebug(`Failed to create container "${this.name}" with error: ${error}`, error);
-    }
-
-    return new Container({
+    // create a new instance of Container
+    let container = new Container({
       blobService: this.blobsvc,
       name: options.name,
-      eTag: eTag,
       metadata: options.metadata,
       publicAccessLevel: options.publicAccessLevel,
-      validate: validate,
-      schemaId: options.schema ? options.schema.id : undefined,
+      validator: this.validator,
     });
+
+    // create the container in azure blob storage
+    await container.create({
+      schema: options.schema,
+    });
+
+    return container;
   }
 
   /**

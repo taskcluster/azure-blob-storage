@@ -16,6 +16,7 @@ class Blob {
 
     this.container = options.container;
     this.blobService = this.container.blobService;
+    this.cacheContent = options.cacheContent || false;
 
     this.name = options.name;
     this.type = options.type;
@@ -44,6 +45,7 @@ class BlockBlob extends Blob {
     try {
       let result = await this.blobService.putBlob(this.container.name, this.name, blobOptions, content);
       this.eTag = result.eTag;
+      this._cache(content);
     } catch (error) {
       rethrowDebug(`Failed to create the blob "${this.name}" with error: ${error}`, error);
     }
@@ -53,18 +55,29 @@ class BlockBlob extends Blob {
    * Load the content of the blob
    */
   async load() {
-    let blob = await this.blobService.getBlob(this.container.name, this.name);
+    // load the content only if the eTag of our local data doesn't match the copy on the server
+    let options = {};
+    let blob;
+    if (this.cacheContent) {
+      options.ifNoneMatch = this.eTag;
+    }
+    try {
+      let blob = await this.blobService.getBlob(this.container.name, this.name, options);
 
-    // update the properties
-    if (this.eTag !== blob.eTag) {
+      // update the properties
       this.eTag = blob.eTag;
       this.contentType = blob.contentType;
       this.contentLanguage = blob.contentLanguage;
       this.contentDisposition = blob.contentDisposition;
       this.cacheControl = blob.cacheControl;
-    }
 
-    return blob.content;
+      return blob.content;
+    } catch (error) {
+      if (error && error.statusCode === 304) {
+        return this.content;
+      }
+      rethrowDebug(`Failed to load the blob "${this.name}" with error: ${error}`, error);
+    }
   }
 
   async update(options, content) {
@@ -74,6 +87,7 @@ class BlockBlob extends Blob {
     try {
       let result = await this.blobService.putBlob(this.container.name, this.name, options, content);
       this.eTag = result.eTag;
+      this._cache(content);
     } catch (error) {
       rethrowDebug(`Failed to update the blob "${this.name}" with error: ${error}`, error);
     }
@@ -118,16 +132,24 @@ class DataBlockBlob extends BlockBlob {
     }
   }
 
+  _cache(content) {
+    this.content = this.cacheContent ? content : undefined;
+  }
+
   /**
    * Load the content of this blob.
    */
   async load() {
     let data = await super.load();
-    let content = JSON.parse(data).content;
-    // Validate the JSON against the schema
-    this._validateJSON(content);
+    // validate only if it is necessary, only if the content has been changed
+    if (data !== this.content) {
+      let content = JSON.parse(data).content;
+      // Validate the JSON against the schema
+      this._validateJSON(content);
+      return content;
+    }
 
-    return content;
+    return this.content;
   }
 
   /**
@@ -143,6 +165,9 @@ class DataBlockBlob extends BlockBlob {
 
     // 2. store the blob
     await super.create(this._serialize(content));
+
+    // 3. cache the raw content and not the serialized one
+    this._cache(content);
   }
 
   /**
@@ -175,30 +200,19 @@ class DataBlockBlob extends BlockBlob {
     let attemptModify = async () => {
       try {
         // 1. load the resource
-        let result = await this.blobService.getBlob(this.container.name, this.name);
-        let data = JSON.parse(result.content);
-
-        // In case the blob was already modified, update the object properties
-        if (result.eTag !== this.eTag) {
-          this.eTag = result.eTag;
-          this.contentLanguage = result.contentLanguage;
-          this.contentDisposition = result.contentDisposition;
-          this.cacheControl = result.cacheControl;
-        }
+        let content = await this.load();
 
         // 2. run the modifier function
-        let modifiedContent = modifier(data.content);
+        let modifiedContent = modifier(content);
 
         // 3. validate against the schema
         this._validateJSON(modifiedContent);
 
         // 4. update the resource
         options.ifMatch = this.eTag;
-        let payload = JSON.stringify({
-          content: modifiedContent,
-          version: data.version,
-        });
-        super.update(options, payload);
+        super.update(options, this._serialize(modifiedContent));
+        // cache the raw content and not the one
+        this._cache(modifiedContent);
       } catch (error) {
         // rethrow error, if it's not caused by optimistic concurrency
         if (!error || error.code !== 'ConditionNotMet') {

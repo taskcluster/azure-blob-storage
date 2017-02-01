@@ -4,6 +4,12 @@ const debug = _debug('azure-blob-storage:container');
 import {rethrowDebug} from './utils';
 import {Blob, BlockBlob, AppendBlob, DataBlockBlob} from './blob';
 
+/**
+ * The name of the blob where the JSON schema is stored
+ * @const
+ */
+const JSON_SCHEMA_BLOB_NAME = '.schema.blob.json';
+
 class Container {
 
   constructor(options) {
@@ -12,10 +18,103 @@ class Container {
 
     this.blobService = options.blobService;
     this.name = options.name;
-    this.eTag = options.eTag;
-    this.schemaId = options.schemaId;
     this.metadata = options.metadata || {};
-    this.validate = options.validate;
+    this.validator = options.validator;
+  }
+
+  _getSchemaId() {
+    return `http://${this.blobService.options.accountId}.blob.core.windows.net/${this.name}/${JSON_SCHEMA_BLOB_NAME}#`;
+  }
+
+  async _validate(schema) {
+    let validate;
+    let schemaId = this._getSchemaId(this.name);
+    try {
+      let schemaValidation = this.validator.getSchema(schemaId);
+      if (schemaValidation) {
+        validate = schemaValidation;
+      } else if (schema) {
+        if (typeof schema !== 'object') {
+          throw new Error('If specified, the `options.schema` must be a JSON schema object.');
+        }
+        schema.id = schemaId;
+
+        // the compile method also checks if the JSON schema is a valid one
+        validate = this.validator.compile(schema);
+      } else {
+        /**
+         * A container can have an associated JSON schema which is store in a blob with name '.schema.blob.json'.
+         */
+        let data = await this.blobService.getBlob(this.name, JSON_SCHEMA_BLOB_NAME);
+        let schemaObj = JSON.parse(data).content;
+        schemaObj.id = schemaId;
+        validate = this.validator.compile(schemaObj);
+      }
+    } catch (error) {
+      if (!error || error.code !== 'BlobNotFound') {
+        rethrowDebug(`Failed to load schema with id "${schemaId}" with error: ${error}`, error);
+      }
+    }
+    return validate;
+  }
+
+  /**
+   * This method creates this container in azure blob storage.
+   * @param options - Options on the form:
+   * ```js
+   * {
+   *    schema: object,                     // The schema object
+   * }
+   * ```
+   */
+  async create(options) {
+    options = options || {};
+
+    try {
+      let createResult = await this.blobService.createContainer(this.name, {
+        metadata: this.metadata,
+        publicAccessLevel: this.publicAccessLevel,
+      });
+
+      this.eTag = createResult.eTag;
+
+      // store the associated schema if it is specified
+      if (options.schema) {
+        // the schema will be stored in a blob named '.schema.blob.json'
+        let blobOptions = {
+          contentType: 'application/json',
+          blobType: 'BlockBlob',
+        };
+        let payload = JSON.stringify({
+          content: options.schema,
+          version: 1,
+        });
+        let result = await this.blobService.putBlob(this.name,
+          JSON_SCHEMA_BLOB_NAME,
+          blobOptions,
+          payload);
+        // get the schema validation function
+        this.validate = await this._validate(options.schema);
+        this.schemaId = options.schema.id;
+      }
+    } catch (error) {
+      rethrowDebug(`Failed to create container "${this.name}" with error: ${error}`, error);
+    }
+  }
+
+  async load() {
+    try {
+      let properties = await this.blobService.getContainerProperties(this.name);
+      this.eTag = properties.eTag;
+      this.metadata = properties.metadata;
+      // get the schema validation function if the container has an associated schema
+      this.validate = await this._validate();
+      this.schemaId = this.validate ? this._getSchemaId(this.name) : undefined;
+    } catch (error) {
+      if (!error || error.code !== 'BlobNotFound') {
+        rethrowDebug(`Failed to load container "${this.name}" with error: ${error}`, error);
+      }
+    }
   }
 
   async updateMetadata(metadata) {
@@ -100,15 +199,20 @@ class Container {
    *    contentLanguage: '...',     // The content language of the blob
    *    cacheControl: '...',        // The cache control of the blob
    *    contentDisposition: '...',  // The content disposition of the blob
+   *    cacheContent: true|false,   // This can be set true in order to keep a reference of the blob content.
+   *                                // Default value is false
    * }
    * ```
    * @returns {DataBlockBlob} an instance of DataBlockBlob
    */
-  createDataBlob(options) {
+  async createDataBlob(options, content) {
     options = options || {};
     options.container = this;
 
-    return new DataBlockBlob(options);
+    let blob = new DataBlockBlob(options);
+    await blob.create(content);
+
+    return blob;
   }
 
   /**
@@ -128,13 +232,17 @@ class Container {
    *    contentDisposition: '...',  // The content disposition of the blob
    * }
    * ```
+   * @param content - content of the blob
    * @returns {BlockBlob} an instance of BlockBlob
    */
-  createBlockBlob(options) {
+  async createBlockBlob(options, content) {
     options = options || {};
     options.container = this;
 
-    return new BlockBlob(options);
+    let blob = new BlockBlob(options);
+    await blob.create(content);
+
+    return blob;
   }
 
   /**

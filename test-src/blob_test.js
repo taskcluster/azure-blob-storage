@@ -52,7 +52,7 @@ describe('Azure Blob Storage - Blob', () => {
       schema: schemaObj,
     });
     assume(container instanceof Container).is.ok();
-    assume(container.schemaId).equals(`${blobStorage.jsonSchemaNameBaseURL}${name}/.schema.blob.json#`);
+    // assume(container.schemaId).equals(`${blobStorage.jsonSchemaNameBaseURL}${name}/.schema.blob.json#`);
   });
 
   after(async () => {
@@ -66,14 +66,12 @@ describe('Azure Blob Storage - Blob', () => {
     debug(`create a blob with name: ${blobName}`);
     let blob = await container.createDataBlob({
       name: blobName,
+    }, {
+      value: 40,
     });
     assume(blob instanceof DataBlockBlob).is.ok();
 
-    debug(`upload content to blob: ${blobName}`);
-    let result = await blob.create({
-      value: 40,
-    });
-
+    debug(`list blobs from container ${container.name}`);
     let list = await container.listBlobs({
       prefix: blobName,
     });
@@ -91,15 +89,12 @@ describe('Azure Blob Storage - Blob', () => {
   it('try create a data blob with wrong data', async() => {
     let blobName = `${blobNamePrefix}${uuid.v4()}`;
     debug(`create a blob with name: ${blobName}`);
-    let blob = await container.createDataBlob({
-      name: blobName,
-    });
-    assume(blob instanceof DataBlockBlob).is.ok();
 
-    debug(`upload content to blob: ${blobName}`);
     let createError;
     try {
-      await blob.create({
+      await container.createDataBlob({
+        name: blobName,
+      }, {
         value: 'wrong value',
       });
     } catch (error) {
@@ -115,13 +110,10 @@ describe('Azure Blob Storage - Blob', () => {
     debug(`create a blob with name: ${blobName}`);
     let blob = await container.createDataBlob({
       name: blobName,
-    });
-    assume(blob instanceof DataBlockBlob).is.ok();
-
-    debug(`create the blob in azure storage: ${blobName}`);
-    let result = await blob.create({
+    }, {
       value: 24,
     });
+    assume(blob instanceof DataBlockBlob).is.ok();
 
     debug(`update the content of the blob: ${blobName}`);
     let modifier = (json) => {
@@ -140,13 +132,10 @@ describe('Azure Blob Storage - Blob', () => {
     debug(`create a blob with name: ${blobName}`);
     let blob = await container.createDataBlob({
       name: blobName,
-    });
-    assume(blob instanceof DataBlockBlob).is.ok();
-
-    debug(`upload content to blob: ${blobName}`);
-    await blob.create({
+    }, {
       value: 24,
     });
+    assume(blob instanceof DataBlockBlob).is.ok();
 
     debug(`update the content of the blob: ${blobName}`);
     let updateError;
@@ -161,5 +150,30 @@ describe('Azure Blob Storage - Blob', () => {
     }
     assume(updateError).exists();
     assume(updateError.code).equals('SchemaValidationError');
+  });
+
+  it('should create a data block blob with cached content, load and update the content', async() => {
+    let blobName = `${blobNamePrefix}${uuid.v4()}`;
+    debug(`create a blob with name: ${blobName}`);
+    let blob = await container.createDataBlob({
+      name: blobName,
+      cacheContent: true,
+    }, {
+      value: 24,
+    });
+    assume(blob instanceof DataBlockBlob).is.ok();
+    assume(blob.content).is.ok();
+    assume(blob.content.value).equals(24);
+    assume(blob.eTag).is.ok();
+
+    debug(`load the content of the blob: ${blobName}`);
+    let content = await blob.load();
+
+    debug('update the content of the blob');
+    await blob.update({}, (json) => {
+      json.value = 40;
+      return json;
+    });
+    assume(blob.content.value).equals(40);
   });
 });

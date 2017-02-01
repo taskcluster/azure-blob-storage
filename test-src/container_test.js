@@ -100,14 +100,16 @@ describe('Azure Blob Storage - Container', () => {
       name: name,
       schema: schemaObj,
     });
+    let accountId = blobStorage.blobsvc.options.accountId;
+    let schemaId = `http://${accountId}.blob.core.windows.net/${name}/.schema.blob.json#`;
     assume(newContainer instanceof Container).is.ok();
-    assume(newContainer.schemaId).equals(`${blobStorage.jsonSchemaNameBaseURL}${name}/.schema.blob.json#`);
+    assume(newContainer.schemaId).equals(schemaId);
 
     debug(`load the container: ${name}`);
     let container = await blobStorage.loadContainer({
       name,
     });
     assume(container instanceof Container).is.ok();
-    assume(container.schemaId).equals(`${blobStorage.jsonSchemaNameBaseURL}${name}/.schema.blob.json#`);
+    assume(container.schemaId).equals(schemaId);
   });
 });
