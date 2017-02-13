@@ -9,19 +9,19 @@ class ExtendableError extends Error {
 
 class CongestionError extends ExtendableError {
   constructor(message) {
-    super(message, 'CongestionError', 'CongestionError');
+    super(message, 'CongestionError', 'Congestion');
   }
 }
 
 class SchemaValidationError extends ExtendableError {
   constructor(message) {
-    super(message, 'SchemaValidationError', 'SchemaValidationError');
+    super(message, 'SchemaValidationError', 'SchemaValidation');
   }
 }
 
 class BlobSerializationError extends ExtendableError {
   constructor(message) {
-    super(message, 'BlobSerializationError', 'BlobSerializationError');
+    super(message, 'BlobSerializationError', 'BlobSerialization');
   }
 }
 

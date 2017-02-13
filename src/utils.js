@@ -19,11 +19,6 @@ exports.sleep = (delay) => {
 };
 
 exports.computeDelay = (retry, delayFactor, randomizationFactor, maxDelay) => {
-  // set the default values
-  delayFactor = delayFactor || 100;
-  randomizationFactor = randomizationFactor || 0.25;
-  maxDelay = maxDelay || 30 * 1000;
-
   let delay = Math.pow(2, retry) * delayFactor;
   delay *= Math.random() * 2 * randomizationFactor + 1 - randomizationFactor;
   delay = Math.min(delay, maxDelay);
