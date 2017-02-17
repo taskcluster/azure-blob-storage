@@ -1,5 +1,6 @@
 import assert from 'assert';
 import _debug from 'debug';
+import _      from 'lodash';
 const debug = _debug('azure-blob-storage:blob');
 import {CongestionError, SchemaValidationError, BlobSerializationError} from './customerrors';
 import {rethrowDebug, sleep, computeDelay} from './utils';
@@ -121,10 +122,10 @@ class DataBlockBlob extends DataBlob {
   /**
    * Load the content of this blob.
    */
-  async load(force) {
+  async load() {
     // load the content only if the eTag of our local data doesn't match the copy on the server
     let options = {};
-    if (!force && this.cacheContent) {
+    if (this.cacheContent) {
       options.ifNoneMatch = this.eTag;
     }
     try {
@@ -200,9 +201,10 @@ class DataBlockBlob extends DataBlob {
     let attemptModify = async () => {
       try {
         // 1. load the resource
-        let content = await this.load(true);
+        let content = await this.load();
 
         // 2. run the modifier function
+        let clonedContent = _.cloneDeep(content);
         modifiedContent = modifier(content);
 
         // 3. validate against the schema

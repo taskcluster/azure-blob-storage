@@ -4,7 +4,7 @@
   "author": "Elena Solomon <elenasolomon28@gmail.com>",
   "description": "azure-blob-storage",
   "private": true,
-  "scripts": {
+  "scripts": { 
     "install": "npm run compile",
     "compile": "rm -rf lib/ test/ && DEBUG= babel-compile -p taskcluster src:lib test-src:test",
     "fastcompile": "DEBUG= babel-compile --no-clean -p taskcluster src:lib test-src:test",
@@ -27,6 +27,7 @@
     "eslint": "^2.10.2",
     "eslint-config-taskcluster": "^2.0.0",
     "eslint-plugin-taskcluster": "^1.0.0",
+    "lodash": "^4.17.4",
     "mocha": "^2.2.5",
     "taskcluster-base": "^6.2.0",
     "typed-env-config": "^1.1.0"
