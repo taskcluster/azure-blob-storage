@@ -6,8 +6,8 @@ import path           from 'path';
 import {schema, credentials}       from './helpers';
 
 describe('Data Container - Tests for authentication with SAS from auth.taskcluster.net', () => {
-
   var callCount = 0;
+  var returnExpiredSAS = false;
   // Create test api
   let api = new base.API({
     title:        'Test TC-Auth',
@@ -29,16 +29,15 @@ describe('Data Container - Tests for authentication with SAS from auth.taskclust
       return;
     }
 
-    let credentials = {
-      accountId: cfg.azureBlob.accountId,
-      accessKey: cfg.azureBlob.accessKey,
-    };
-
-    let blobService = azure.Blob({
+    let blobService = new azure.Blob({
       accountId:  credentials.accountName,
       accessKey:  credentials.accountKey,
     });
-    let expiry = new Date(Date.now() + 25 * 60 * 1000);
+    var expiry = new Date(Date.now() + 25 * 60 * 1000);
+    // Return and old expiry, this causes a refresh on the next call
+    if (returnExpiredSAS) {
+      expiry = new Date(Date.now() + 15 * 60 * 1000 + 100);
+    }
 
     let sas = blobService.sas(container, null, {
       start:         new Date(Date.now() - 15 * 60 * 1000),
@@ -73,24 +72,23 @@ describe('Data Container - Tests for authentication with SAS from auth.taskclust
 
     let validator = await base.validator({
       folder: path.join(__dirname, 'schemas_auth'),
-      // prefix: 'test/v1',
     });
 
     // Create a simple app
     let app = base.app({
-      port:       23244,
+      port:       1208,
       env:        'development',
       forceSSL:   false,
       trustProxy: false,
     });
 
     // Create router for the API
-    var router =  api.router({
+    let router =  api.router({
       validator: validator,
     });
 
     // Mount router
-    app.use('/v1', router);
+    app.use(router);
 
     server = await app.createServer();
   });
@@ -108,13 +106,12 @@ describe('Data Container - Tests for authentication with SAS from auth.taskclust
         clientId: 'authed-client',
         accessToken: 'test-token',
       },
-      authBaseUrl: 'http://localhost:23244',
+      authBaseUrl: 'http://localhost:1208',
       schema: schema,
     });
     assume(dataContainer).exists('Expected a data container instance.');
   });
 
-  // TODO is not working - will be fixed
   it('should create a data block blob', async () => {
     callCount = 0;
     await dataContainer.createDataBlockBlob({
@@ -122,6 +119,61 @@ describe('Data Container - Tests for authentication with SAS from auth.taskclust
     }, {
       value: 50,
     });
+
+    assume(callCount).equals(1);
+  });
+
+  it('should call for every operation, expiry < now => refreshed SAS', async () => {
+    callCount = 0;
+    returnExpiredSAS = true;  // This means we call for each operation
+    dataContainer = await DataContainer({
+      account: credentials.accountName,
+      container: containerName,
+      credentials: {
+        clientId: 'authed-client',
+        accessToken: 'test-token',
+      },
+      authBaseUrl: 'http://localhost:1208',
+      schema: schema,
+    });
+    let blob = await dataContainer.createDataBlockBlob({
+      name: 'blobTest',
+    }, {
+      value: 50,
+    });
+
+    assume(callCount).equals(1, 'azureBlobSAS should have been called once.');
+
+    await base.testing.sleep(200);
+    let content = await blob.load();
+
+    assume(callCount).equals(2, 'azureBlobSAS should have been called twice.');
+  });
+
+  it('create two data block blobs in parallel, only gets SAS once', async () => {
+    dataContainer = await DataContainer({
+      account: credentials.accountName,
+      container: containerName,
+      credentials: {
+        clientId: 'authed-client',
+        accessToken: 'test-token',
+      },
+      authBaseUrl: 'http://localhost:1208',
+      schema: schema,
+    });
+    callCount = 0;
+    await Promise.all([
+      dataContainer.createDataBlockBlob({
+        name: 'blobTest2',
+      }, {
+        value: 50,
+      }),
+      dataContainer.createDataBlockBlob({
+        name: 'blobTest3',
+      }, {
+        value: 50,
+      }),
+    ]);
 
     assume(callCount).equals(1);
   });

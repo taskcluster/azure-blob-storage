@@ -252,6 +252,7 @@ class AppendDataBlob extends DataBlob {
   constructor(options) {
     options.type = 'AppendBlob';
     super(options);
+    this.cacheContent = false;
   }
 
   _serialize(content) {
