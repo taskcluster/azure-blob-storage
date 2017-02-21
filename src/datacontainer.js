@@ -26,6 +26,7 @@ class DataContainer {
    *     clientId:        '...',                  // TaskCluster clientId
    *     accessToken:     '...',                  // TaskCluster accessToken
    *   },
+   *   accessLevel:       'read-write',           // The access level of the container: read-only/read-write (optional)
    *   authBaseUrl:       '...',                  // baseUrl for auth (optional)
    *   schema:            '...',                  // JSON schema object
    *
@@ -86,7 +87,8 @@ class DataContainer {
         accountId:        options.account,
         minSASAuthExpiry: 15 * 60 * 1000,
         sas: async () => {
-          let result = await auth.azureBlobSAS(options.account, options.container);
+          let level = options.accessLevel || 'read-write';
+          let result = await auth.azureBlobSAS(options.account, options.container, level);
           return result.sas;
         },
       });

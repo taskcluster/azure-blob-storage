@@ -15,17 +15,22 @@ describe('Data Container - Tests for authentication with SAS from auth.taskclust
   });
   api.declare({
     method:     'get',
-    route:      '/azure/:account/blob/:container/read-write',
+    route:      '/azure/:account/blob/:container/:level',
     name:       'azureBlobSAS',
     deferAuth:  true,
-    scopes:     [['auth:azure-blob-access:<account>/<container>']],
+    scopes:     [['auth:azure-blob:<level>:<account>/<container>']],
     title:        'Test SAS End-Point',
     description:  'Get SAS for testing',
   }, function(req, res) {
     callCount += 1;
     let account = req.params.account;
     let container = req.params.container;
-    if (!req.satisfies({account: account, container: container})) {
+    let level = req.params.level;
+
+    if (!req.satisfies({
+      account: account,
+      container: container,
+      level: level})) {
       return;
     }
 
@@ -39,16 +44,18 @@ describe('Data Container - Tests for authentication with SAS from auth.taskclust
       expiry = new Date(Date.now() + 15 * 60 * 1000 + 100);
     }
 
+    let perm = level === 'read-write';
+
     let sas = blobService.sas(container, null, {
       start:         new Date(Date.now() - 15 * 60 * 1000),
       expiry:        expiry,
       resourceType: 'container',
       permissions: {
         read: true,
-        add: true,
-        create: true,
-        write: true,
-        delete: true,
+        add: perm,
+        create: perm,
+        write: perm,
+        delete: perm,
         list: true,
       },
     });
@@ -63,10 +70,12 @@ describe('Data Container - Tests for authentication with SAS from auth.taskclust
   let server;
   let dataContainer;
   let containerName = 'container-test';
+  let containerReadOnly = 'container-read-only';
 
   before(async () => {
     base.testing.fakeauth.start({
       'authed-client': ['*'],
+      'read-only-client': [`auth:azure-blob:read-only:${credentials.accountName}/${containerReadOnly}`],
       'unauthed-client': ['*'],
     });
 
@@ -96,6 +105,31 @@ describe('Data Container - Tests for authentication with SAS from auth.taskclust
   after(async () => {
     await server.terminate();
     base.testing.fakeauth.stop();
+  });
+
+  it('should create an instance of data container with read-only access and try to create a blob', async () => {
+    dataContainer = await DataContainer({
+      account: credentials.accountName,
+      container: containerReadOnly,
+      credentials: {
+        clientId: 'read-only-client',
+        accessToken: 'test-token',
+      },
+      accessLevel: 'read-only',
+      authBaseUrl: 'http://localhost:1208',
+      schema: schema,
+    });
+    assume(dataContainer).exists('Expected a data container instance.');
+
+    try {
+      await dataContainer.createDataBlockBlob({
+        name: 'blob',
+      }, {value: 20});
+    } catch (error) {
+      assume(error.code).equals('AuthorizationPermissionMismatch');
+      return;
+    }
+    assume(false).is.true('It should have thrown an error because the client does not have `read-write` access.');
   });
 
   it('should create an instance of data container', async () => {

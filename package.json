@@ -4,7 +4,7 @@
   "author": "Elena Solomon <elenasolomon28@gmail.com>",
   "description": "azure-blob-storage",
   "private": true,
-  "scripts": { 
+  "scripts": {
     "install": "npm run compile",
     "compile": "rm -rf lib/ test/ && DEBUG= babel-compile -p taskcluster src:lib test-src:test",
     "fastcompile": "DEBUG= babel-compile --no-clean -p taskcluster src:lib test-src:test",
