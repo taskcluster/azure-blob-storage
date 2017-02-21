@@ -24,7 +24,9 @@ describe('Azure Blob Storage - Data Block Blob', () => {
   });
 
   after(async () => {
-    await dataContainer.removeContainer();
+    if (dataContainer) {
+      await dataContainer.removeContainer();
+    }
   });
 
   it('should create a data block blob (no cache content), list, load and delete blob', async () => {
@@ -251,5 +253,70 @@ describe('Azure Blob Storage - Data Block Blob', () => {
       }),
     ]);
     assume(blob.content.value).equals(44, 'The content of the blob should have been modified.');
+  });
+
+  it('should create a data block blob, modify the content, delete (ignoreChanges=true)', async () => {
+    let blobName = `${blobNamePrefix}${uuid.v4()}`;
+    debug(`create a blob with name: ${blobName}`);
+    let blob = await dataContainer.createDataBlockBlob({
+      name: blobName,
+      cacheContent: true,
+    }, {
+      value: 24,
+    });
+    assume(blob instanceof DataBlockBlob).is.ok();
+
+    debug(`modify the content of the blob with name: ${blobName}`);
+    await blob.modify((data) => {
+      data.value = 80;
+      return data;
+    });
+
+    debug(`remove(ignoreChanges=true) the blob with name: ${blobName}`);
+    await blob.remove(true);
+  });
+
+  it('should create a data block blob, delete the blob, try to delete' +
+    ' again the same blob (ignoreIfNotExists=true)', async () => {
+    let blobName = `${blobNamePrefix}${uuid.v4()}`;
+    debug(`create a blob with name: ${blobName}`);
+    let blob = await dataContainer.createDataBlockBlob({
+      name: blobName,
+      cacheContent: true,
+    }, {
+      value: 24,
+    });
+    assume(blob instanceof DataBlockBlob).is.ok();
+
+    debug(`remove the blob with name: ${blobName}`);
+    await blob.remove();
+
+    debug(`remove (ignoreIfNotExists=true) again the blob with name: ${blobName}`);
+    await blob.remove(false, true);
+  });
+
+  it('should create a data block blob, delete the blob, try to delete' +
+    ' again the same blob (ignoreIfNotExists=false)', async () => {
+    let blobName = `${blobNamePrefix}${uuid.v4()}`;
+    debug(`create a blob with name: ${blobName}`);
+    let blob = await dataContainer.createDataBlockBlob({
+      name: blobName,
+      cacheContent: true,
+    }, {
+      value: 24,
+    });
+    assume(blob instanceof DataBlockBlob).is.ok();
+
+    debug(`remove the blob with name: ${blobName}`);
+    await blob.remove();
+
+    debug(`remove (ignoreIfNotExists=false) again the blob with name: ${blobName}`);
+    try {
+      await blob.remove(false, false);
+    } catch (error) {
+      assume(error.code).equals('BlobNotFound', 'Expected a `BlobNotFound` error.');
+      return;
+    }
+    assume(false).is.true('An error should have been thrown because the blob was already removed.');
   });
 });

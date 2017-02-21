@@ -343,27 +343,20 @@ class DataContainer {
   }
 
   /**
-   * Remove a blob by reference to the DataBlob object or string that's the blob's name in the Azure namespace
+   * Remove a blob
    * @param blob
    * @param ignoreIfNotExists - true in order to ignore the error that is thrown in case the blob does not exist
    */
-  async removeBlob(blob, ignoreIfNotExists) {
-    assert(blob, '`blob` must be specified.');
-    let blobName;
-    if (typeof blob === 'string') {
-      blobName = blob;
-    } else if (typeof blob === 'object') {
-      blobName = blob.name;
-    }
+  async remove(blob, ignoreIfNotExists) {
+    assert(blob, 'The blob name must be specified.');
 
     try {
-      await this.blobService.deleteBlob(this.name, blobName);
+      await this.blobService.deleteBlob(this.name, blob);
     } catch (error) {
       if (ignoreIfNotExists && error && error.code === 'BlobNotFound') {
         return;
       }
-      rethrowDebug(`Failed to remove the blob '${blobName}' from container "${this.name}" with error: ${error}`,
-        error);
+      rethrowDebug(`Failed to remove the blob '${blob}' from container "${this.name}" with error: ${error}`, error);
     }
   }
 }

@@ -84,12 +84,19 @@ class DataBlob {
   }
 
   /**
-   * Deletes the underlying blob from azure
+   * Remove this blob if the content was not modified, unless `ignoreChanges` is set
    */
-  async remove() {
+  async remove(ignoreChanges, ignoreIfNotExists) {
+    let options = {};
+    if (!ignoreChanges) {
+      options.ifMatch = this.eTag;
+    }
     try {
-      await this.blobService.deleteBlob(this.container.name, this.name);
+      await this.blobService.deleteBlob(this.container.name, this.name, options);
     } catch (error) {
+      if (ignoreIfNotExists && error && error.code === 'BlobNotFound') {
+        return;
+      }
       rethrowDebug(`Failed to remove the blob '${this.name}'` +
         ` from container "${this.container.name}" with error: ${error}`, error);
     }
@@ -205,7 +212,7 @@ class DataBlockBlob extends DataBlob {
 
         // 2. run the modifier function
         let clonedContent = _.cloneDeep(content);
-        modifiedContent = modifier(content);
+        modifiedContent = modifier(clonedContent);
 
         // 3. validate against the schema
         this._validateJSON(modifiedContent);

@@ -28,7 +28,7 @@ describe('Azure Blob Storage - Data Container Tests', () => {
     await container.ensureContainer();
   });
 
-  it('should remove a blob by name', async () => {
+  it('should remove a blob', async () => {
     let blobName = 'blob-test';
     debug(`create a blob with name: ${blobName}`);
     let blob = await container.createDataBlockBlob({
@@ -37,32 +37,20 @@ describe('Azure Blob Storage - Data Container Tests', () => {
       value: 24,
     });
 
-    await container.removeBlob(blobName);
+    await container.remove(blobName);
   });
 
-  it('should remove a blob by reference', async () => {
-    let blobName = 'blob-test';
-    debug(`create a blob with name: ${blobName}`);
-    let blob = await container.createDataBlockBlob({
-      name: blobName,
-    }, {
-      value: 24,
-    });
-
-    await container.removeBlob(blob);
-  });
-
-  it('should remove a non existing blob by name (ignore if not exists)', async () => {
+  it('should remove a non existing blob (ignore if not exists)', async () => {
     let blobName = 'unknown-blob';
 
-    await container.removeBlob(blobName, true);
+    await container.remove(blobName, true);
   });
 
-  it('try to remove a non existing blob by name', async () => {
+  it('try to remove a non existing blob', async () => {
     let blobName = 'unknown-blob';
 
     try {
-      await container.removeBlob(blobName);
+      await container.remove(blobName);
     } catch (error) {
       assume(error.code).equals('BlobNotFound', 'Expected a `BlobNotFound` error.');
       return;

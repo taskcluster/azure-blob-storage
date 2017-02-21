@@ -24,7 +24,9 @@ describe('Azure Blob Storage - Append Data Blob Tests', () => {
   });
 
   after(async () => {
-    await dataContainer.removeContainer();
+    if (dataContainer) {
+      await dataContainer.removeContainer();
+    }
   });
 
   it('should create an append data blob, append content, list, load and delete', async () => {
