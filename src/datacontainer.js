@@ -6,7 +6,7 @@ import Ajv              from 'ajv';
 import {rethrowDebug}   from './utils';
 import _debug           from 'debug';
 const debug = _debug('azure-blob-storage:account');
-import {Blob, DataBlockBlob, AppendDataBlob} from './datablob';
+import {DataBlockBlob, AppendDataBlob} from './datablob';
 
 /**
  * This class represents an Azure Blob Storage container which stores objects in JSON format.
@@ -182,8 +182,7 @@ class DataContainer {
    *    continuationToken: '...',     // Next token if not at end of list
    * }
    */
-  async listBlobs(options) {
-    options = options || {};
+  async listBlobs(options = {}) {
     let blobs = [];
 
     try {
@@ -197,22 +196,19 @@ class DataContainer {
       });
 
       blobs = result.blobs.map(blob => {
+        let options = {
+          container: this,
+          name: blob.name,
+          contentLanguage: blob.contentLanguage,
+          contentDisposition: blob.contentDisposition,
+          cacheControl: blob.cacheControl,
+        };
         if (blob.type === 'BlockBlob') {
-          return new DataBlockBlob({
-            container: this,
-            name: blob.name,
-          });
+          return new DataBlockBlob(options);
         } else if (blob.type === 'AppendBlob') {
-          return new AppendDataBlob({
-            container: this,
-            name: blob.name,
-          });
+          return new AppendDataBlob(options);
         } else {
-          return new Blob({
-            container: this,
-            type: blob.type,
-            name: blob.name,
-          });
+          // PageBlobs are not supported
         }
       });
 
@@ -242,9 +238,8 @@ class DataContainer {
    *    }
    * ```
    */
-  async scanDataBlockBlob(handler, options) {
+  async scanDataBlockBlob(handler, options = {}) {
     assert(typeof handler === 'function', 'handler must be a function');
-    options = options || {};
 
     try {
       let marker;
@@ -299,9 +294,8 @@ class DataContainer {
    * @param content - content in JSON format of the blob
    * @returns {DataBlockBlob} an instance of DataBlockBlob
    */
-  async createDataBlockBlob(options, content) {
+  async createDataBlockBlob(options = {}, content) {
     assert(content, 'The content of the blob must be provided.');
-    options = options || {};
     options.container = this;
 
     let blob = new DataBlockBlob(options);
@@ -329,8 +323,7 @@ class DataContainer {
    * ```
    * @param content - the content, in JSON format, that should be appended
    */
-  async createAppendDataBlob(options, content) {
-    options = options || {};
+  async createAppendDataBlob(options = {}, content) {
     options.container = this;
 
     let blob = new AppendDataBlob(options);
