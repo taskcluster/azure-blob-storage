@@ -42,6 +42,7 @@
     "taskcluster-client": "^1.6.3",
     "uuid": "^2.0.2"
   },
+  "main": "./lib/datacontainer",
   "engines": {
     "node": "4.x"
   }
