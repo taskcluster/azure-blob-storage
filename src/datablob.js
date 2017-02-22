@@ -16,7 +16,6 @@ class DataBlob {
    * {
    *    name: '...',                // The name of the blob (required)
    *    container: '...',           // An instance of DataContainer (required)
-   *    metadata: '...',            // Name-value pairs associated with the blob as metadata
    *    contentEncoding: '...',     // The content encoding of the blob
    *    contentLanguage: '...',     // The content language of the blob
    *    cacheControl: '...',        // The cache control of the blob

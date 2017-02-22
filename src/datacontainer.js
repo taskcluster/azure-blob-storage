@@ -191,9 +191,6 @@ class DataContainer {
         prefix: options.prefix,
         marker: options.continuation,
         maxResults: options.maxResults,
-        include: {
-          metadata: true,
-        },
       });
 
       blobs = result.blobs.map(blob => {
