@@ -1,6 +1,6 @@
 import base           from 'taskcluster-base';
 import azure          from 'fast-azure-storage';
-import DataContainer  from '../lib/DataContainer';
+import DataContainer  from '../lib/datacontainer';
 import assume         from 'assume';
 import path           from 'path';
 import {schema, credentials}       from './helpers';

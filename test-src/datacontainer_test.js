@@ -1,5 +1,5 @@
 import assume             from 'assume';
-import DataContainer      from '../lib/DataContainer';
+import DataContainer      from '../lib/datacontainer';
 import _debug             from 'debug';
 const debug = _debug('azure-blob-storage-test:data-container');
 import {schema, credentials}      from './helpers';
