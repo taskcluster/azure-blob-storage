@@ -1,8 +1,9 @@
-import assume        from 'assume';
-import DataContainer from '../lib/DataContainer';
-import _debug        from 'debug';
+import assume             from 'assume';
+import DataContainer      from '../lib/DataContainer';
+import _debug             from 'debug';
 const debug = _debug('azure-blob-storage-test:data-container');
 import {schema, credentials}      from './helpers';
+import {DataBlockBlob, AppendDataBlob}    from '../lib/datablob';
 
 describe('Azure Blob Storage - Data Container Tests', () => {
   const containerNamePrefix = 'test';
@@ -58,6 +59,41 @@ describe('Azure Blob Storage - Data Container Tests', () => {
     assume(false).is.true('Expected error when trying to remove a non existing blob.');
   });
 
+  it('should create a data block blob, load (cacheControl=true)', async () => {
+    let blobName = 'block-blob-test1';
+    debug(`create a blob with name: ${blobName}`);
+    await container.createDataBlockBlob({name: blobName}, {value: 20});
+
+    debug(`load the blob with name: ${blobName}`);
+    let blob = await container.load(blobName, true);
+    assume(blob instanceof DataBlockBlob).is.ok();
+    assume(blob.content.value).equals(20, 'The blob should have had the content with `value` equals with 20');
+  });
+
+  it('should create a data block blob, load (cacheControl=false)', async () => {
+    let blobName = 'block-blob-test2';
+    debug(`create a blob with name: ${blobName}`);
+    await container.createDataBlockBlob({name: blobName}, {value: 20});
+
+    debug(`load the blob with name: ${blobName}`);
+    let blob = await container.load(blobName);
+    assume(blob instanceof DataBlockBlob).is.ok();
+    assume(blob.content).is.not.true('The content of the blob should not have been cached.');
+  });
+
+  it('should create an append data blob, load the blob, append content', async () => {
+    let blobName = 'append-blob-test';
+    debug(`create an append data blob with name: ${blobName}`);
+    await container.createAppendDataBlob({name: blobName});
+
+    debug(`load the append data blob with name: ${blobName}`);
+    let blob = await container.load(blobName);
+    assume(blob instanceof AppendDataBlob).is.ok();
+
+    debug(`append content to blob with name: ${blobName}`);
+    await blob.append({value: 30});
+  });
+
   it('should create 5 blobs, scan, list blobs', async () => {
     let blobNamePrefix = 'blob-test';
     debug('create 5 data block blobs');
@@ -80,7 +116,9 @@ describe('Azure Blob Storage - Data Container Tests', () => {
     await container.scanDataBlockBlob(handler);
 
     debug('list the blobs');
-    let list = await container.listBlobs();
+    let list = await container.listBlobs({
+      prefix: blobNamePrefix,
+    });
     assume(list).exists();
     let blobs = list.blobs;
     assume(blobs).is.array();

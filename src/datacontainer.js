@@ -182,7 +182,8 @@ class DataContainer {
    *    continuationToken: '...',     // Next token if not at end of list
    * }
    */
-  async listBlobs(options = {}) {
+  async listBlobs(options) {
+    options = options || {};
     let blobs = [];
 
     try {
@@ -238,8 +239,9 @@ class DataContainer {
    *    }
    * ```
    */
-  async scanDataBlockBlob(handler, options = {}) {
+  async scanDataBlockBlob(handler, options) {
     assert(typeof handler === 'function', 'handler must be a function');
+    options = options || {};
 
     try {
       let marker;
@@ -294,8 +296,9 @@ class DataContainer {
    * @param content - content in JSON format of the blob
    * @returns {DataBlockBlob} an instance of DataBlockBlob
    */
-  async createDataBlockBlob(options = {}, content) {
+  async createDataBlockBlob(options, content) {
     assert(content, 'The content of the blob must be provided.');
+    options = options || {};
     options.container = this;
 
     let blob = new DataBlockBlob(options);
@@ -323,7 +326,8 @@ class DataContainer {
    * ```
    * @param content - the content, in JSON format, that should be appended
    */
-  async createAppendDataBlob(options = {}, content) {
+  async createAppendDataBlob(options, content) {
+    options = options || {};
     options.container = this;
 
     let blob = new AppendDataBlob(options);
@@ -333,6 +337,42 @@ class DataContainer {
       await blob.append();
     }
     return blob;
+  }
+
+  /**
+   * Returns an instance of DataBlockBlob or AppendDataBlob.
+   * It makes sense to set the cacheContent to true only for DataBlockBlob, because AppendDataBlob blobs does not keep
+   * the content in their instance.
+   *
+   * @param blobName - the name of the blob
+   * @param cacheContent - true in order to cache the content
+   */
+  async load(blobName, cacheContent) {
+    assert(blobName, 'The name of the blob must be specified.');
+
+    try {
+      let blob;
+      let options = {
+        name: blobName,
+        container: this,
+        cacheContent: cacheContent,
+      };
+      // find the type of the blob
+      let properties = await this.blobService.getBlobProperties(this.name, blobName);
+      if (properties.type === 'BlockBlob') {
+        blob = new DataBlockBlob(options);
+      } else if (properties.type === 'AppendBlob') {
+        return new AppendDataBlob(options);
+      } else {
+        // PageBlob is not supported
+        return null;
+      }
+
+      await blob.load();
+      return blob;
+    } catch (error) {
+      rethrowDebug(`Failed to load the blob '${blob}' from container "${this.name}" with error: ${error}`, error);
+    }
   }
 
   /**

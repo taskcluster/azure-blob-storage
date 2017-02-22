@@ -319,4 +319,32 @@ describe('Azure Blob Storage - Data Block Blob', () => {
     }
     assume(false).is.true('An error should have been thrown because the blob was already removed.');
   });
+
+  it('should create a data block blob, modify the content, delete (ignoreChanges=false)', async () => {
+    let blobName = `${blobNamePrefix}${uuid.v4()}`;
+    debug(`create a blob with name: ${blobName}`);
+    let blob1 = await dataContainer.createDataBlockBlob({
+      name: blobName,
+      cacheContent: true,
+    }, {
+      value: 24,
+    });
+    assume(blob1 instanceof DataBlockBlob).is.ok();
+
+    debug(`modify the content of the blob with name: ${blobName}`);
+    let blob2 = await dataContainer.load(blobName, true);
+    await blob2.modify((data) => {
+      data.value = 80;
+      return data;
+    });
+
+    debug(`try to remove(ignoreChanges=false) the blob with name: ${blobName}`);
+    try {
+      await blob1.remove(false);
+    } catch (error) {
+      assume(error.code).equals('ConditionNotMet', 'Expected a `ConditionNotMet` error because the blob was modified.');
+      return;
+    }
+    assume(false).is.true('An error should have been thrown because the content of the blob was modified.');
+  });
 });
