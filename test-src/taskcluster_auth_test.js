@@ -15,22 +15,21 @@ describe('Data Container - Tests for authentication with SAS from auth.taskclust
   });
   api.declare({
     method:     'get',
-    route:      '/azure/:account/blob/:container/:level',
+    route:      '/azure/:account/containers/:container/:level',
     name:       'azureBlobSAS',
     deferAuth:  true,
     scopes:     [['auth:azure-blob:<level>:<account>/<container>']],
     title:        'Test SAS End-Point',
     description:  'Get SAS for testing',
-  }, function(req, res) {
+  }, async function(req, res) {
     callCount += 1;
     let account = req.params.account;
     let container = req.params.container;
     let level = req.params.level;
 
-    if (!req.satisfies({
-      account: account,
-      container: container,
-      level: level})) {
+    if (!(level === 'read-only' &&
+      req.satisfies({account, container, level: 'read-write'}, true)) &&
+      !req.satisfies({account, container, level})) {
       return;
     }
 
@@ -38,6 +37,18 @@ describe('Data Container - Tests for authentication with SAS from auth.taskclust
       accountId:  credentials.accountName,
       accessKey:  credentials.accountKey,
     });
+
+    // Create container ignore error, if it already exists
+    if (level === 'read-write') {
+      try {
+        await blobService.createContainer(container);
+      } catch (err) {
+        if (err.code !== 'ContainerAlreadyExists') {
+          throw err;
+        }
+      }
+    }
+
     var expiry = new Date(Date.now() + 25 * 60 * 1000);
     // Return and old expiry, this causes a refresh on the next call
     if (returnExpiredSAS) {
