@@ -90,7 +90,6 @@ describe('Azure Blob Storage - Data Block Blob', () => {
     debug(`update the content of the blob: ${blobName}`);
     let modifier = (data) => {
       data.value = 40;
-      return data;
     };
     await blob.modify(modifier);
 
@@ -125,7 +124,6 @@ describe('Azure Blob Storage - Data Block Blob', () => {
     debug(`update the content of the blob: ${blobName}`);
     let modifier = (data) => {
       data.value = 50;
-      return data;
     };
     await blob.modify(modifier);
     assume(blob.content.value).equals(50, 'The content of the blob should have been updated with value 50');
@@ -245,11 +243,9 @@ describe('Azure Blob Storage - Data Block Blob', () => {
     await Promise.all([
       blob.modify((data) => {
         data.value += 10;
-        return data;
       }),
       blob.modify((data) => {
         data.value += 10;
-        return data;
       }),
     ]);
     assume(blob.content.value).equals(44, 'The content of the blob should have been modified.');
@@ -269,7 +265,6 @@ describe('Azure Blob Storage - Data Block Blob', () => {
     debug(`modify the content of the blob with name: ${blobName}`);
     await blob.modify((data) => {
       data.value = 80;
-      return data;
     });
 
     debug(`remove(ignoreChanges=true) the blob with name: ${blobName}`);
@@ -335,7 +330,6 @@ describe('Azure Blob Storage - Data Block Blob', () => {
     let blob2 = await dataContainer.load(blobName, true);
     await blob2.modify((data) => {
       data.value = 80;
-      return data;
     });
 
     debug(`try to remove(ignoreChanges=false) the blob with name: ${blobName}`);

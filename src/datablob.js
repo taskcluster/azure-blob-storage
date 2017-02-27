@@ -14,14 +14,15 @@ class DataBlob {
    * @param options - Options on the form
    * ```js
    * {
-   *    name: '...',                // The name of the blob (required)
-   *    container: '...',           // An instance of DataContainer (required)
-   *    contentEncoding: '...',     // The content encoding of the blob
-   *    contentLanguage: '...',     // The content language of the blob
-   *    cacheControl: '...',        // The cache control of the blob
-   *    contentDisposition: '...',  // The content disposition of the blob
-   *    cacheContent: true|false,   // This can be set true in order to keep a reference of the blob content.
-   *                                // Default value is false
+   *    name: '...',                  // The name of the blob (required)
+   *    type: 'BlockBlob|AppendBlob', // The type of the blob (required)
+   *    container: '...',             // An instance of DataContainer (required)
+   *    contentEncoding: '...',       // The content encoding of the blob
+   *    contentLanguage: '...',       // The content language of the blob
+   *    cacheControl: '...',          // The cache control of the blob
+   *    contentDisposition: '...',    // The content disposition of the blob
+   *    cacheContent: true|false,     // This can be set true in order to keep a reference of the blob content.
+   *                                  // Default value is false
    * }
    * ```
    */
@@ -65,7 +66,7 @@ class DataBlob {
    *
    * @param content - content of the blob
    */
-  async create(content) {
+  async _create(content) {
     let blobOptions = {
       type: this.type,
       contentType: this.contentType,
@@ -159,7 +160,7 @@ class DataBlockBlob extends DataBlob {
 
   /**
    * The method creates this blob on azure blob storage.
-   * The blob can be created with an empty content. The content can be uploaded later using `modify` method.
+   * The blob can be created without content. The content can be uploaded later using `modify` method.
    *
    * @param content - a JSON object
    */
@@ -169,7 +170,7 @@ class DataBlockBlob extends DataBlob {
     this._validateJSON(content);
 
     // 2. store the blob
-    await super.create(this._serialize(content));
+    await super._create(this._serialize(content));
 
     // 3. cache the raw content and not the serialized one
     this._cache(content);
@@ -211,10 +212,11 @@ class DataBlockBlob extends DataBlob {
 
         // 2. run the modifier function
         let clonedContent = _.cloneDeep(content);
-        modifiedContent = modifier(clonedContent);
+        modifier(clonedContent);
+        modifiedContent = clonedContent;
 
         // 3. validate against the schema
-        this._validateJSON(modifiedContent);
+        this._validateJSON(clonedContent);
 
         // 4. update the resource
         options.ifMatch = this.eTag;
@@ -309,10 +311,16 @@ class AppendDataBlob extends DataBlob {
       rethrowDebug(`Failed to load the blob "${this.name}" with error: ${error}`, error);
     }
   }
+
+  /**
+   * Creates the blob in Azure storage
+   */
+  async create() {
+    await this._create();
+  }
 }
 
 module.exports = {
-  DataBlob,
   DataBlockBlob,
   AppendDataBlob,
 };
