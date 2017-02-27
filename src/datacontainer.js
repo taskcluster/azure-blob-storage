@@ -372,7 +372,10 @@ class DataContainer {
   }
 
   /**
-   * Remove a blob
+   * Removes a blob from Azure storage without loading it.
+   * Returns true, if the blob was deleted. It makes sense to read the return value only if `ignoreIfNotExists` is set
+   * to value true.
+   *
    * @param blob
    * @param ignoreIfNotExists - true in order to ignore the error that is thrown in case the blob does not exist
    */
@@ -381,9 +384,10 @@ class DataContainer {
 
     try {
       await this.blobService.deleteBlob(this.name, blob);
+      return true;
     } catch (error) {
       if (ignoreIfNotExists && error && error.code === 'BlobNotFound') {
-        return;
+        return false;
       }
       rethrowDebug(`Failed to remove the blob '${blob}' from container "${this.name}" with error: ${error}`, error);
     }
