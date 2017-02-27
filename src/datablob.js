@@ -278,15 +278,14 @@ class AppendDataBlob extends DataBlob {
    * Append content that should be conform to container schema
    *
    * @param content - the content that should be appended
-   * @param options
    */
-  async append(content, options) {
+  async append(content) {
     // 1. validate the content against the schema
     this._validateJSON(content);
 
     // 2. append the new content
     try {
-      await this.blobService.appendBlock(this.container.name, this.name, options, this._serialize(content));
+      await this.blobService.appendBlock(this.container.name, this.name, {}, this._serialize(content));
     } catch (error) {
       rethrowDebug(`Failed to append content for blob '${this.name}' with error: ${error}`, error);
     }
