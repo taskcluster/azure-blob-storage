@@ -42,13 +42,12 @@ class DataContainer {
    *   // Maximum retry delay in ms (defaults to 30 seconds)
    *   updateMaxDelay:             30 * 1000,
    * }
-   * }
    * ```
    * Using the `options` format provided above a shared-access-signature will be
    * fetched from auth.taskcluster.net. The goal with this is to reduce secret
    * configuration and reduce exposure of our Azure `accountKey`. To fetch the
    * shared-access-signature the following scope is required:
-   *   `auth:azure-blob-access:<accountName>/<container>`
+   *   `auth:azure-blob:<level>:<account>/<container>`
    *
    * In case you have the Azure credentials, the options are:
    * ```js
