@@ -219,7 +219,7 @@ class DataContainer {
   }
 
   /**
-   * Execute the provided function on each Blob in this container while handling pagination.
+   * Execute the provided function on each data block blob from this container while handling pagination.
    *
    * @param {function} handler
    * ```js
@@ -337,7 +337,7 @@ class DataContainer {
 
   /**
    * Returns an instance of DataBlockBlob or AppendDataBlob.
-   * It makes sense to set the cacheContent to true only for DataBlockBlob, because AppendDataBlob blobs does not keep
+   * It makes sense to set the cacheContent to true only for DataBlockBlob, because AppendDataBlob blobs do not keep
    * the content in their instance.
    *
    * @param blobName - the name of the blob
