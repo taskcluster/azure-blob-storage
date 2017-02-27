@@ -165,6 +165,7 @@ class DataBlockBlob extends DataBlob {
    * @param content - a JSON object
    */
   async create(content) {
+    assert(content, 'content must be specified');
 
     // 1. Validate the content against the schema
     this._validateJSON(content);

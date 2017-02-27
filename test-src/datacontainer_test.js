@@ -110,7 +110,6 @@ describe('Azure Blob Storage - Data Container Tests', () => {
     let handler = async (blob) => {
       await blob.modify((content) => {
         content.value += 10;
-        return content;
       });
     };
     await container.scanDataBlockBlob(handler);
