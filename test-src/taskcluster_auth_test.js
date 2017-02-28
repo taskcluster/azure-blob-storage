@@ -1,4 +1,7 @@
-import base           from 'taskcluster-base';
+import API            from 'taskcluster-lib-api';
+import testing        from 'taskcluster-lib-testing';
+import validator      from 'taskcluster-lib-validate';
+import app            from 'taskcluster-lib-app';
 import azure          from 'fast-azure-storage';
 import DataContainer  from '../lib/datacontainer';
 import assume         from 'assume';
@@ -9,7 +12,7 @@ describe('Data Container - Tests for authentication with SAS from auth.taskclust
   var callCount = 0;
   var returnExpiredSAS = false;
   // Create test api
-  let api = new base.API({
+  let api = new API({
     title:        'Test TC-Auth',
     description:  'Another test api',
   });
@@ -84,18 +87,18 @@ describe('Data Container - Tests for authentication with SAS from auth.taskclust
   let containerReadOnly = 'container-read-only';
 
   before(async () => {
-    base.testing.fakeauth.start({
+    testing.fakeauth.start({
       'authed-client': ['*'],
       'read-only-client': [`auth:azure-blob:read-only:${credentials.accountName}/${containerReadOnly}`],
       'unauthed-client': ['*'],
     });
 
-    let validator = await base.validator({
+    let myvalidator = await validator({
       folder: path.join(__dirname, 'schemas_auth'),
     });
 
     // Create a simple app
-    let app = base.app({
+    let myapp = app({
       port:       1208,
       env:        'development',
       forceSSL:   false,
@@ -104,18 +107,18 @@ describe('Data Container - Tests for authentication with SAS from auth.taskclust
 
     // Create router for the API
     let router =  api.router({
-      validator: validator,
+      validator: myvalidator,
     });
 
     // Mount router
-    app.use(router);
+    myapp.use(router);
 
-    server = await app.createServer();
+    server = await myapp.createServer();
   });
 
   after(async () => {
     await server.terminate();
-    base.testing.fakeauth.stop();
+    testing.fakeauth.stop();
   });
 
   it('should create an instance of data container with read-only access and try to create a blob', async () => {
@@ -189,7 +192,7 @@ describe('Data Container - Tests for authentication with SAS from auth.taskclust
 
     assume(callCount).equals(1, 'azureBlobSAS should have been called once.');
 
-    await base.testing.sleep(200);
+    await testing.sleep(200);
     let content = await blob.load();
 
     assume(callCount).equals(2, 'azureBlobSAS should have been called twice.');
