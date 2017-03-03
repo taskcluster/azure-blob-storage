@@ -367,7 +367,7 @@ class DataContainer {
       await blob.load();
       return blob;
     } catch (error) {
-      rethrowDebug(`Failed to load the blob '${blob}' from container "${this.name}" with error: ${error}`, error);
+      rethrowDebug(`Failed to load the blob '${blobName}' from container "${this.name}" with error: ${error}`, error);
     }
   }
 
