@@ -41,7 +41,7 @@
     "debug": "^2.2.0",
     "fast-azure-storage": "^1.0.0",
     "source-map-support": "^0.4.8",
-    "taskcluster-client": "^1.6.3",
+    "taskcluster-client": "^2.1.0",
     "uuid": "^2.0.2"
   },
   "main": "./lib/datacontainer",
