@@ -1,5 +1,6 @@
 import assume             from 'assume';
 import DataContainer      from '../lib/datacontainer';
+import uuid               from 'uuid';
 import _debug             from 'debug';
 const debug = _debug('azure-blob-storage-test:data-container');
 import {schema, credentials}      from './helpers';
@@ -7,7 +8,7 @@ import {DataBlockBlob, AppendDataBlob}    from '../lib/datablob';
 
 describe('Azure Blob Storage - Data Container Tests', () => {
   const containerNamePrefix = 'test';
-  let containerName = 'data-container-test';
+  let containerName = `${uuid.v4()}`;
   let container;
 
   before(() =>{

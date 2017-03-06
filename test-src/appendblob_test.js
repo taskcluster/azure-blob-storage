@@ -5,10 +5,11 @@ import uuid          from 'uuid';
 import _debug        from 'debug';
 const debug = _debug('azure-blob-storage-test:data-container');
 import {logSchema, credentials}      from './helpers';
+import {sleep}       from '../lib/utils';
 
 describe('Azure Blob Storage - Append Data Blob Tests', () => {
   let dataContainer;
-  const containerName = 'container-blob-test-append-blob';
+  const containerName = `${uuid.v4()}`;
   const blobNamePrefix = 'blob';
 
   before(async () => {
