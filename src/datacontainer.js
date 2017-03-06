@@ -346,29 +346,48 @@ class DataContainer {
   async load(blobName, cacheContent) {
     assert(blobName, 'The name of the blob must be specified.');
 
+    let properties;
     try {
-      let blob;
-      let options = {
-        name: blobName,
-        container: this,
-        cacheContent: cacheContent,
-      };
       // find the type of the blob
-      let properties = await this.blobService.getBlobProperties(this.name, blobName);
-      if (properties.type === 'BlockBlob') {
-        blob = new DataBlockBlob(options);
-      } else if (properties.type === 'AppendBlob') {
-        return new AppendDataBlob(options);
-      } else {
-        // PageBlob is not supported
-        return null;
-      }
-
-      await blob.load();
-      return blob;
+      properties = await this.blobService.getBlobProperties(this.name, blobName);
     } catch (error) {
+      /**
+       * For getBlobProperties, if the blob does not exist, Azure does not send a proper BlobNotFound error.
+       * Azure sends a response with statusCode: 404, statusMessage: 'The specified blob does not exists.' and
+       * without any payload. Because of this, the error received here will look like this:
+       *
+       *  { ErrorWithoutCodeError: No error message given, in payload ''
+       *     name: 'ErrorWithoutCodeError',
+       *     code: 'ErrorWithoutCode',
+       *     statusCode: 404,
+       *     retries: 0 }
+       * Probably in the future, Azure will correct the response, but, till then we will override the name and code.
+       */
+      if (error.statusCode === 404 && error.name === 'ErrorWithoutCodeError') {
+        error.code = 'BlobNotFound';
+        error.name = 'BlobNotFoundError';
+        error.message = 'The specified blob does not exist.';
+      }
       rethrowDebug(`Failed to load the blob '${blobName}' from container "${this.name}" with error: ${error}`, error);
     }
+
+    let blob;
+    let options = {
+      name: blobName,
+      container: this,
+      cacheContent: cacheContent,
+    };
+    if (properties.type === 'BlockBlob') {
+      blob = new DataBlockBlob(options);
+    } else if (properties.type === 'AppendBlob') {
+      return new AppendDataBlob(options);
+    } else {
+      // PageBlob is not supported
+      return null;
+    }
+
+    await blob.load();
+    return blob;
   }
 
   /**

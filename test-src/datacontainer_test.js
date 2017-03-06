@@ -81,6 +81,17 @@ describe('Azure Blob Storage - Data Container Tests', () => {
     assume(blob.content).is.not.true('The content of the blob should not have been cached.');
   });
 
+  it('try to load a blob that does not exist', async () => {
+    let blobName = 'block-blob-does-not-exist';
+    try {
+      await container.load(blobName);
+    } catch (error) {
+      assume(error.code).equals('BlobNotFound', 'Expected a BlobNotFound error.');
+      return;
+    }
+    assume(false).is.true('Expected error when trying to load a non existing blob.');
+  });
+
   it('should create an append data blob, load the blob, append content', async () => {
     let blobName = 'append-blob-test';
     debug(`create an append data blob with name: ${blobName}`);
