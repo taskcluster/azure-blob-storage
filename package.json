@@ -1,9 +1,9 @@
 {
   "name": "azure-blob-storage",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "author": "Elena Solomon <elenasolomon28@gmail.com>",
   "description": "azure-blob-storage",
-  "private": true,
+  "private": false,
   "scripts": {
     "install": "npm run compile",
     "compile": "rm -rf lib/ test/ && DEBUG= babel-compile -p taskcluster src:lib test-src:test",
