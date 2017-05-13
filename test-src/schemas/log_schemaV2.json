@@ -1,0 +1,21 @@
+{
+  "$schema":      "http://json-schema.org/draft-04/schema#",
+  "title":        "test json schema",
+  "type":         "object",
+  "properties": {
+    "event": {
+      "type":           "string"
+    },
+    "code": {
+      "type":           "integer"
+    },
+    "reason": {
+      "type":           "string"
+    },
+    "location": {
+      "type":           "string"
+    }
+  },
+  "additionalProperties":   false,
+  "required": ["event", "code", "reason", "location"]
+}

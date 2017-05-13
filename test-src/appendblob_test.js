@@ -3,9 +3,8 @@ import DataContainer from '../lib/datacontainer';
 import {AppendDataBlob}    from '../lib/datablob';
 import uuid          from 'uuid';
 import _debug        from 'debug';
-const debug = _debug('azure-blob-storage-test:data-container');
+const debug = _debug('azure-blob-storage-test:append-data-blob');
 import {logSchema, credentials}      from './helpers';
-import {sleep}       from '../lib/utils';
 
 describe('Azure Blob Storage - Append Data Blob Tests', () => {
   let dataContainer;
@@ -83,6 +82,6 @@ describe('Azure Blob Storage - Append Data Blob Tests', () => {
         'A SchemaValidationError should have been thrown for invalid data');
       return;
     }
-    assume(false).is.true('Expected an error when trying to modify a deleted blob.');
+    assume(false).is.true('Expected an error when trying to append invalid content.');
   });
 });

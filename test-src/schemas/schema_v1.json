@@ -1,0 +1,12 @@
+{
+  "$schema":      "http://json-schema.org/draft-04/schema#",
+  "title":        "schema version 1",
+  "type":         "object",
+  "properties": {
+    "value": {
+      "type":           "integer"
+    }
+  },
+  "additionalProperties":   false,
+  "required": ["value"]
+}
