@@ -1,10 +1,8 @@
-import assume             from 'assume';
-import DataContainer      from '../lib/datacontainer';
-import _debug             from 'debug';
-const debug = _debug('azure-blob-storage-test:data-container');
-import {schema, credentials}      from './helpers';
-import {DataBlockBlob, AppendDataBlob}    from '../lib/datablob';
-import uuid               from 'uuid';
+const assume = require('assume');
+const debug = require('debug')('azure-blob-storage-test:data-container');
+const {schema, credentials} = require('./helpers');
+const uuid = require('uuid');
+const {DataContainer, DataBlockBlob, AppendDataBlob} = require('../lib');
 
 suite('Azure Blob Storage - Data Container Tests', () => {
   const containerNamePrefix = 'test';

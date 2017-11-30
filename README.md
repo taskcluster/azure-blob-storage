@@ -13,7 +13,7 @@ time of the container.
 Create a `DataContainer` by calling the asynchronous function `DataContainer` with an options object:
 
 ```js
-DataContainer = require('azure-blob-storage').default; // this is an ES6 module
+let {DataContainer} = require('azure-blob-storage');
 
 let container = await DataContainer({
   // Azure connection details for use with SAS from auth.taskcluster.net
@@ -167,6 +167,7 @@ for e.g. logging or auditing.
 The constructor of the blob takes the following options:
 
 ```js
+let {DataBlockBlob, AppendDataBlob} = require('azure-blob-storage');
 {
    name:                '...',        // The name of the blob (required)
    container:           '...',        // An instance of DataContainer (required)
@@ -180,6 +181,9 @@ The constructor of the blob takes the following options:
 ```
 The options `cacheContent` can be set to true only for DataBlockBlob because, AppendDataBlob does not support the caching
 of its content.
+
+Note that the `createDataBlockBlob` and `createAppendDataBlob` methods of
+`DataContainer` provide shortcuts to calling these constructors.
 
 ### DataBlockBlob operations
 

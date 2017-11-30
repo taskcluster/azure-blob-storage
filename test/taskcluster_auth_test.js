@@ -1,13 +1,13 @@
-import API            from 'taskcluster-lib-api';
-import testing        from 'taskcluster-lib-testing';
-import validator      from 'taskcluster-lib-validate';
-import app            from 'taskcluster-lib-app';
-import azure          from 'fast-azure-storage';
-import DataContainer  from '../lib/datacontainer';
-import assume         from 'assume';
-import path           from 'path';
-import uuid           from 'uuid';
-import {schema, credentials}       from './helpers';
+const API = require('taskcluster-lib-api');
+const testing = require('taskcluster-lib-testing');
+const validator = require('taskcluster-lib-validate');
+const app = require('taskcluster-lib-app');
+const azure = require('fast-azure-storage');
+const {DataContainer} = require('../lib');
+const assume = require('assume');
+const {schema, credentials} = require('./helpers');
+const uuid = require('uuid');
+const path = require('path');
 
 suite('Data Container - Tests for authentication with SAS from auth.taskcluster.net', () => {
   var callCount = 0;

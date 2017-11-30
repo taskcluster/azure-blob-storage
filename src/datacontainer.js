@@ -542,4 +542,4 @@ async function DataContainerFactory(options) {
   return dataContainer;
 }
 
-export default DataContainerFactory;
+module.exports.DataContainer = DataContainerFactory;
