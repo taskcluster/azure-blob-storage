@@ -25,8 +25,15 @@ class BlobSerializationError extends ExtendableError {
   }
 }
 
+class SchemaIntegrityCheckError extends ExtendableError {
+  constructor(message) {
+    super(message, 'SchemaIntegrityCheckError', 'SchemaIntegrityCheck');
+  }
+}
+
 module.exports = {
   CongestionError,
   SchemaValidationError,
   BlobSerializationError,
+  SchemaIntegrityCheckError,
 };

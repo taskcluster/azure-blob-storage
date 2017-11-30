@@ -44,15 +44,15 @@ class DataBlob {
     this.cacheControl = options.cacheControl;
   }
 
-  _validateJSON(content) {
-    let valid = this.container.validate(content);
-    if (!valid) {
+  async _validateJSON(content) {
+    let result = await this.container.validate(content, this.version ? this.version:this.container.schemaVersion);
+    if (!result.valid) {
       debug(`Failed to validate the blob content against schema with id: 
-          ${this.container.schema.id}, errors: ${this.container.validate.errors}`);
+          ${this.container.schema.id}, errors: ${result.errors}`);
       let error = new SchemaValidationError(`Failed to validate the blob content against schema with id: 
                                             ${this.container.schema.id}`);
       error.content = content;
-      error.validationErrors = this.container.validate.errors;
+      error.validationErrors = result.errors;
       throw error;
     }
   }
@@ -118,7 +118,7 @@ class DataBlockBlob extends DataBlob {
     try {
       return JSON.stringify({
         content: json,
-        version: 1,
+        version: this.version ? this.version : this.container.schemaVersion,
       });
     } catch (error) {
       debug(`Failed to serialize the content of the blob: ${this.name} with error: ${error}, ${error.stack}`);
@@ -145,9 +145,11 @@ class DataBlockBlob extends DataBlob {
       this.contentDisposition = blob.contentDisposition;
       this.cacheControl = blob.cacheControl;
 
-      let content = JSON.parse(blob.content).content;
+      let deserializedContent = JSON.parse(blob.content);
+      let content = deserializedContent.content;
+      this.version = deserializedContent.version;
       // Validate the JSON against the schema
-      this._validateJSON(content);
+      await this._validateJSON(content);
       this._cache(content);
       return content;
     } catch (error) {
@@ -168,7 +170,7 @@ class DataBlockBlob extends DataBlob {
     assert(content, 'content must be specified');
 
     // 1. Validate the content against the schema
-    this._validateJSON(content);
+    await this._validateJSON(content);
 
     // 2. store the blob
     await super._create(this._serialize(content));
@@ -217,7 +219,7 @@ class DataBlockBlob extends DataBlob {
         modifiedContent = clonedContent;
 
         // 3. validate against the schema
-        this._validateJSON(clonedContent);
+        await this._validateJSON(clonedContent);
 
         // 4. update the resource
         options.ifMatch = this.eTag;
@@ -282,7 +284,7 @@ class AppendDataBlob extends DataBlob {
    */
   async append(content) {
     // 1. validate the content against the schema
-    this._validateJSON(content);
+    await this._validateJSON(content);
 
     // 2. append the new content
     try {

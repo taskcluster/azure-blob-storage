@@ -6,6 +6,7 @@ import azure          from 'fast-azure-storage';
 import DataContainer  from '../lib/datacontainer';
 import assume         from 'assume';
 import path           from 'path';
+import uuid           from 'uuid';
 import {schema, credentials}       from './helpers';
 
 suite('Data Container - Tests for authentication with SAS from auth.taskcluster.net', () => {
@@ -16,6 +17,7 @@ suite('Data Container - Tests for authentication with SAS from auth.taskcluster.
     title:        'Test TC-Auth',
     description:  'Another test api',
   });
+
   api.declare({
     method:     'get',
     route:      '/azure/:account/containers/:container/:level',
@@ -83,13 +85,12 @@ suite('Data Container - Tests for authentication with SAS from auth.taskcluster.
   // Create servers
   let server;
   let dataContainer;
-  let containerName = 'container-test';
-  let containerReadOnly = 'container-read-only';
+  let containerName = `container-test${uuid.v4()}`;
 
   suiteSetup(async () => {
     testing.fakeauth.start({
       'authed-client': ['*'],
-      'read-only-client': [`auth:azure-blob:read-only:${credentials.accountName}/${containerReadOnly}`],
+      'read-only-client': [`auth:azure-blob:read-only:${credentials.accountName}/${containerName}`],
       'unauthed-client': ['*'],
     });
 
@@ -119,31 +120,7 @@ suite('Data Container - Tests for authentication with SAS from auth.taskcluster.
   suiteTeardown(async () => {
     await server.terminate();
     testing.fakeauth.stop();
-  });
-
-  test('should create an instance of data container with read-only access and try to create a blob', async () => {
-    dataContainer = await DataContainer({
-      account: credentials.accountName,
-      container: containerReadOnly,
-      credentials: {
-        clientId: 'read-only-client',
-        accessToken: 'test-token',
-      },
-      accessLevel: 'read-only',
-      authBaseUrl: 'http://localhost:1208',
-      schema: schema,
-    });
-    assume(dataContainer).exists('Expected a data container instance.');
-
-    try {
-      await dataContainer.createDataBlockBlob({
-        name: 'blob',
-      }, {value: 20});
-    } catch (error) {
-      assume(error.code).equals('AuthorizationPermissionMismatch');
-      return;
-    }
-    assume(false).is.true('It should have thrown an error because the client does not have `read-write` access.');
+    // delete the container created
   });
 
   test('should create an instance of data container', async () => {
@@ -160,6 +137,31 @@ suite('Data Container - Tests for authentication with SAS from auth.taskcluster.
     assume(dataContainer).exists('Expected a data container instance.');
   });
 
+  test('should create an instance of data container with read-only access and try to create a blob', async () => {
+    let readOnlyDataContainer = await DataContainer({
+      account: credentials.accountName,
+      container: containerName,
+      credentials: {
+        clientId: 'read-only-client',
+        accessToken: 'test-token',
+      },
+      accessLevel: 'read-only',
+      authBaseUrl: 'http://localhost:1208',
+      schema: schema,
+    });
+    assume(readOnlyDataContainer).exists('Expected a data container instance.');
+
+    try {
+      await readOnlyDataContainer.createDataBlockBlob({
+        name: 'blob',
+      }, {value: 20});
+    } catch (error) {
+      assume(error.code).equals('AuthorizationPermissionMismatch');
+      return;
+    }
+    assume(false).is.true('It should have thrown an error because the client does not have `read-write` access.');
+  });
+
   test('should create a data block blob', async () => {
     callCount = 0;
     await dataContainer.createDataBlockBlob({
@@ -168,61 +170,38 @@ suite('Data Container - Tests for authentication with SAS from auth.taskcluster.
       value: 50,
     });
 
-    assume(callCount).equals(1);
+    // the auth won't be called because it was already called in order to cache the schema
+    assume(callCount).equals(0);
   });
 
   test('should call for every operation, expiry < now => refreshed SAS', async () => {
     callCount = 0;
     returnExpiredSAS = true;  // This means we call for each operation
-    dataContainer = await DataContainer({
-      account: credentials.accountName,
-      container: containerName,
-      credentials: {
-        clientId: 'authed-client',
-        accessToken: 'test-token',
-      },
-      authBaseUrl: 'http://localhost:1208',
-      schema: schema,
-    });
-    let blob = await dataContainer.createDataBlockBlob({
-      name: 'blobTest',
-    }, {
-      value: 50,
-    });
-
-    assume(callCount).equals(1, 'azureBlobSAS should have been called once.');
-
-    await testing.sleep(200);
-    let content = await blob.load();
-
-    assume(callCount).equals(2, 'azureBlobSAS should have been called twice.');
-  });
-
-  test('create two data block blobs in parallel, only gets SAS once', async () => {
-    dataContainer = await DataContainer({
-      account: credentials.accountName,
-      container: containerName,
-      credentials: {
-        clientId: 'authed-client',
-        accessToken: 'test-token',
-      },
-      authBaseUrl: 'http://localhost:1208',
-      schema: schema,
-    });
-    callCount = 0;
-    await Promise.all([
-      dataContainer.createDataBlockBlob({
-        name: 'blobTest2',
+    try {
+      dataContainer = await DataContainer({
+        account: credentials.accountName,
+        container: containerName,
+        credentials: {
+          clientId: 'authed-client',
+          accessToken: 'test-token',
+        },
+        authBaseUrl: 'http://localhost:1208',
+        schema: schema,
+      });
+      let blob = await dataContainer.createDataBlockBlob({
+        name: 'blobTest',
       }, {
         value: 50,
-      }),
-      dataContainer.createDataBlockBlob({
-        name: 'blobTest3',
-      }, {
-        value: 50,
-      }),
-    ]);
+      });
 
-    assume(callCount).equals(1);
+      assume(callCount).equals(2, 'azureBlobSAS should have been called twice.');
+
+      await testing.sleep(200);
+      let content = await blob.load();
+
+      assume(callCount).equals(3, 'azureBlobSAS should have been called three times.');
+    } catch (error) {
+      assume(false).is.true('Expected no error.');
+    }
   });
 });

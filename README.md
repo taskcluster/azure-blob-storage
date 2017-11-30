@@ -25,6 +25,8 @@ The constructor of the DataContainer takes the following options:
   accessLevel:       'read-write',           // The access level of the container: read-only/read-write (optional)
   authBaseUrl:       '...',                  // baseUrl for auth (optional)
   schema:            '...',                  // JSON schema object
+  schemaVersion:     1,                      // JSON schema version. (optional)
+                                             // The default value is 1.
 
   // Max number of update blob request retries
   updateRetries:              10,

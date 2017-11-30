@@ -7,6 +7,7 @@ import {rethrowDebug}   from './utils';
 import _debug           from 'debug';
 const debug = _debug('azure-blob-storage:account');
 import {DataBlockBlob, AppendDataBlob} from './datablob';
+import {SchemaIntegrityCheckError} from './customerrors';
 
 /**
  * This class represents an Azure Blob Storage container which stores objects in JSON format.
@@ -29,6 +30,8 @@ class DataContainer {
    *   accessLevel:       'read-write',           // The access level of the container: read-only/read-write (optional)
    *   authBaseUrl:       '...',                  // baseUrl for auth (optional)
    *   schema:            '...',                  // JSON schema object
+   *   schemaVersion:     1,                      // JSON schema version. (optional)
+   *                                              // The default value is 1.
    *
    *   // Max number of update blob request retries
    *   updateRetries:              10,
@@ -67,6 +70,10 @@ class DataContainer {
     assert(typeof options.container === 'string',   'options.container is not a string');
     assert(options.schema,                          'options.schema must be given');
     assert(typeof options.schema === 'object',      'options.schema is not an object');
+
+    if (options.schemaVersion) {
+      assert(typeof options.schemaVersion === 'number', 'options.schemaVersion is not a number');
+    }
 
     // create an Azure Blob Storage client
     let blobService;
@@ -108,17 +115,20 @@ class DataContainer {
 
     this.blobService = blobService;
     this.name        = options.container;
+    // _validateFunctionMap is a mapping from schema version to validation function generated
+    // after the ajv schema compile
+    this._validateFunctionMap = {};
+
     this.schema      = options.schema;
+    this.schemaVersion = options.schemaVersion? options.schemaVersion : 1;
+    this.schema.id = this._getSchemaId(this.schemaVersion);
+
     this.validator   = Ajv({
       useDefaults: true,
       format: 'full',
       verbose: true,
       allErrors: true,
     });
-    // get the schema validation function
-    this.schema.id = this._getSchemaId();
-    // the compile method also checks if the JSON schema is a valid one
-    this.validate = this.validator.compile(this.schema);
 
     this.updateRetries = options.updateRetries || 10;
     this.updateDelayFactor = options.updateDelayFactor || 100;
@@ -126,9 +136,117 @@ class DataContainer {
     this.updateMaxDelay = options.updateMaxDelay || 30 * 1000;
   }
 
-  _getSchemaId() {
+  /**
+   * @param schemaVersion - the schema version
+   * @returns {string} - the id of the schema
+   * @private
+   */
+  _getSchemaId(schemaVersion) {
     return `http://${this.blobService.options.accountId}.blob.core.windows.net/` +
-      `${this.name}/${constants.JSON_SCHEMA_NAME}`;
+      `${this.name}/.schema.v${schemaVersion}.json`;
+  }
+
+  /**
+   * @param schemaVersion - the schema version
+   * @returns {string} - the name of the schema
+   * @private
+   */
+  _getSchemaName(schemaVersion) {
+    return `.schema.v${schemaVersion}`;
+  }
+
+  /**
+   * Saves the JSON schema in a BlockBlob.
+   * This method will throw an 'AuthorizationPermissionMismatch', if the client has read-only rights
+   * for the data container.
+   *
+   * @private
+   */
+  async _saveSchema() {
+    try {
+      let schemaName = this._getSchemaName(this.schemaVersion);
+      await this.blobService.putBlob(this.name, schemaName, {type: 'BlockBlob'}, JSON.stringify(this.schema));
+    } catch (error) {
+      // Ignore the 'AuthorizationPermissionMismatch' error that will be throw if the client has read-only rights.
+      // The save of the schema can be done only by the clients with read-write access.
+      if (error.code !== 'AuthorizationPermissionMismatch') {
+        rethrowDebug(`Failed to save the json schema '${this.schema.id}' with error: ${error}`, error);
+      }
+    }
+  }
+
+  /**
+   * If the schema was previously saved, this method will make an integrity check, otherwise will save the schema in
+   * a blockBlob.
+   * @private
+   */
+  async _cacheSchema() {
+    let storedSchema;
+    let schemaName = this._getSchemaName(this.schemaVersion);
+    try {
+      let schemaBlob = await this.blobService.getBlob(this.name, schemaName);
+      storedSchema = schemaBlob.content;
+    } catch (error) {
+      if (error.code === 'BlobNotFound') {
+        this._saveSchema();
+        return;
+      }
+      rethrowDebug(`Failed to save the json schema '${this.schema.id}' with error: ${error}`, error);
+    }
+
+    // integrity check
+    if (storedSchema !== JSON.stringify(this.schema)) {
+      throw new SchemaIntegrityCheckError('The stored schema is not the same with the schema defined.');
+    }
+  }
+
+  /**
+   * Method that validates the content
+   *
+   * @param content - JSON content
+   * @param schemaVersion - the schema version (optional)
+   *
+   * @return {object}
+   * ```js
+   * {
+   *    valid: boolean,   // true/false if the content is valid or not
+   *    errors: [],       // if the content is invalid, errors will contain an array of validation errors
+   * }
+   * ```
+   */
+  async validate(content, schemaVersion = this.schemaVersion) {
+    let ajvValidate = this._validateFunctionMap[schemaVersion];
+    // if the validate function is not available, this means that the schema is not yet loaded
+    if (!ajvValidate) {
+      if (schemaVersion === this.schemaVersion) {
+        this._validateFunctionMap[this.schemaVersion] = this.validator.compile(this.schema);
+      } else {
+        // load the schema
+        try {
+          let schemaBlob = await this.blobService.getBlob(this.name, this._getSchemaName(schemaVersion));
+          let schema = JSON.parse(schemaBlob.content);
+          // cache the ajv validate function
+          this._validateFunctionMap[schemaVersion] = this.validator.compile(schema);
+        } catch (error) {
+          rethrowDebug(`Failed to save the json schema '${this.schema.id}' with error: ${error}`, error);
+        }
+      }
+    }
+    ajvValidate = this._validateFunctionMap[schemaVersion];
+    let result = {
+      valid: ajvValidate(content),
+      errors: ajvValidate.errors,
+    };
+
+    return result;
+  }
+
+  async init() {
+    // ensure the existence of the data container
+    await this.ensureContainer();
+
+    // cache the JSON schema
+    await this._cacheSchema();
   }
 
   /**
@@ -200,7 +318,8 @@ class DataContainer {
           contentDisposition: blob.contentDisposition,
           cacheControl: blob.cacheControl,
         };
-        if (blob.type === 'BlockBlob') {
+        // the list can't contain the blobs that store the JSON schema
+        if (blob.type === 'BlockBlob' && !/.schema.v*/i.test(blob.name)) {
           return new DataBlockBlob(options);
         } else if (blob.type === 'AppendBlob') {
           return new AppendDataBlob(options);
@@ -259,8 +378,12 @@ class DataContainer {
                 contentDisposition: blob.contentDisposition,
                 cacheControl: blob.cacheControl,
               });
-              // 2. execute the handler function
-              await handler(dataBlob);
+              // we need to take extra care for the blobs that contain the schema information.
+              // the handle can't be applied on blobs that store the JSON schema
+              if (!/.schema.v*/i.test(dataBlob.name)) {
+                // 2. execute the handler function
+                await handler(dataBlob);
+              }
             }
           }));
 
@@ -320,7 +443,7 @@ class DataContainer {
    *    contentDisposition: '...',  // The content disposition of the blob
    * }
    * ```
-   * @param content - the content, in JSON format, that should be appended
+   * @param content - the content, in JSON format, that should be appended(optional)
    */
   async createAppendDataBlob(options, content) {
     options = options || {};
@@ -346,29 +469,48 @@ class DataContainer {
   async load(blobName, cacheContent) {
     assert(blobName, 'The name of the blob must be specified.');
 
+    let properties;
     try {
-      let blob;
-      let options = {
-        name: blobName,
-        container: this,
-        cacheContent: cacheContent,
-      };
       // find the type of the blob
-      let properties = await this.blobService.getBlobProperties(this.name, blobName);
-      if (properties.type === 'BlockBlob') {
-        blob = new DataBlockBlob(options);
-      } else if (properties.type === 'AppendBlob') {
-        return new AppendDataBlob(options);
-      } else {
-        // PageBlob is not supported
-        return null;
-      }
-
-      await blob.load();
-      return blob;
+      properties = await this.blobService.getBlobProperties(this.name, blobName);
     } catch (error) {
-      rethrowDebug(`Failed to load the blob '${blob}' from container "${this.name}" with error: ${error}`, error);
+      /**
+       * For getBlobProperties, if the blob does not exist, Azure does not send a proper BlobNotFound error.
+       * Azure sends a response with statusCode: 404, statusMessage: 'The specified blob does not exists.' and
+       * without any payload. Because of this, the error received here will look like this:
+       *
+       *  { ErrorWithoutCodeError: No error message given, in payload ''
+       *     name: 'ErrorWithoutCodeError',
+       *     code: 'ErrorWithoutCode',
+       *     statusCode: 404,
+       *     retries: 0 }
+       * Probably in the future, Azure will correct the response, but, till then we will override the name and code.
+       */
+      if (error.statusCode === 404 && error.name === 'ErrorWithoutCodeError') {
+        error.code = 'BlobNotFound';
+        error.name = 'BlobNotFoundError';
+        error.message = 'The specified blob does not exist.';
+      }
+      rethrowDebug(`Failed to load the blob '${blobName}' from container "${this.name}" with error: ${error}`, error);
     }
+
+    let blob;
+    let options = {
+      name: blobName,
+      container: this,
+      cacheContent: cacheContent,
+    };
+    if (properties.type === 'BlockBlob') {
+      blob = new DataBlockBlob(options);
+    } else if (properties.type === 'AppendBlob') {
+      return new AppendDataBlob(options);
+    } else {
+      // PageBlob is not supported
+      return null;
+    }
+
+    await blob.load();
+    return blob;
   }
 
   /**
@@ -396,7 +538,7 @@ class DataContainer {
 
 async function DataContainerFactory(options) {
   let dataContainer = new DataContainer(options);
-  await dataContainer.ensureContainer();
+  await dataContainer.init();
   return dataContainer;
 }
 
