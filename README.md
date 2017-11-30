@@ -204,6 +204,10 @@ content as first argument and it should apply the changes to the instance of the
     await dataBlob.modify(modifier, options);
 ```
 
+This method uses ETags to ensure that modifications are atomic: if some other
+process writes to the blob while `modifier` is executing, `modify` will
+automatically fetch the updated blob and call `modifier` again, retrying
+several times.
 
 ### AppendDataBlob operations
 
