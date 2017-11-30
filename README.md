@@ -146,7 +146,7 @@ Returns true, if the blob was deleted. It makes sense to read the return value o
     await container.remove('state-blob', true);
 ```
 
-### DataBlocKBlob and AppendDataBlob
+### DataBlockBlob and AppendDataBlob
 
 DataBlockBlob is a wrapper over an Azure block blob which stores a JSON data which is conform with schema defined at container
 level.
@@ -204,6 +204,10 @@ content as first argument and it should apply the changes to the instance of the
     await dataBlob.modify(modifier, options);
 ```
 
+This method uses ETags to ensure that modifications are atomic: if some other
+process writes to the blob while `modifier` is executing, `modify` will
+automatically fetch the updated blob and call `modifier` again, retrying
+several times.
 
 ### AppendDataBlob operations
 
@@ -230,3 +234,9 @@ Load the content of the underlying blob.
 ```js
     let content = await logBlob.load();
 ```
+
+# Testing
+
+To test this library in development, copy `user-config-example.yml` to
+`user-config.yml` and fill in the necessary fields.  You will need an Azure
+acocunt to test this library.
