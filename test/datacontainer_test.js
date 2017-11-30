@@ -81,6 +81,11 @@ suite('Azure Blob Storage - Data Container Tests', () => {
     assume(blob.content).is.not.true('The content of the blob should not have been cached.');
   });
 
+  test('createDataBlockBlob will overwrite a blob', async function() {
+    let blob = await container.createDataBlockBlob({name: 'block-blob-test2'}, {value: 30});
+    assume(await blob.load()).is.deeply.equal({value: 30});
+  });
+
   test('try to load a blob that does not exist', async () => {
     let blobName = 'block-blob-does-not-exist';
     try {

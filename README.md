@@ -115,6 +115,10 @@ Executes the provided function on each data block blob from the container, while
 Creates an instance of DataBlockBlob. Using this instance of blob, a JSON file can be stored in Azure storage. 
 The content will be validated against the schema defined at the container level.
 
+This is equivalent to creating a new `DataBlockBlob` instance with the given
+options (see below), then calling its `create` method.  This will
+unconditionally overwrite any existing blob with the same name.
+
 ```js
     let options = {
         name: 'state-blob',
@@ -130,11 +134,9 @@ The content will be validated against the schema defined at the container level.
 Creates an instance of AppendDataBlob. Each object appended must be in JSON format and must match the schema defined at container level.
 Updating and deleting the existing content is not supported.
 
-This is equivalent to creating a new `DataBlockBlob` instance (see below), then
-calling its `create` method. Note that a `DataBlockBlob` instance cannot be
-created any other way, and that the `create` operation is unconditional, so it
-is impossible to modify an existing object for which you do not already have a
-`DataBlockBlob` instance.
+This is equivalent to creating a new `AppendDataBlob` instance with the given
+options (see below), then calling its `create` and (if `content` is provided)
+`append` methods.
 
 ```js
     let options = {
