@@ -5,7 +5,6 @@
   "description": "azure-blob-storage",
   "private": true,
   "scripts": {
-    "install": "npm run compile",
     "compile": "rm -rf lib/ test/ && DEBUG= babel-compile -p taskcluster src:lib test-src:test",
     "fastcompile": "DEBUG= babel-compile --no-clean -p taskcluster src:lib test-src:test",
     "clean": "rm -rf lib test",
