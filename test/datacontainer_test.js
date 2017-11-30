@@ -4,10 +4,11 @@ import _debug             from 'debug';
 const debug = _debug('azure-blob-storage-test:data-container');
 import {schema, credentials}      from './helpers';
 import {DataBlockBlob, AppendDataBlob}    from '../lib/datablob';
+import uuid               from 'uuid';
 
 describe('Azure Blob Storage - Data Container Tests', () => {
   const containerNamePrefix = 'test';
-  let containerName = 'data-container-test';
+  let containerName = `data-container-test${uuid.v4()}`;
   let container;
 
   before(() =>{
@@ -143,7 +144,7 @@ describe('Azure Blob Storage - Data Container Tests', () => {
     assume(false).is.true('Expected error when trying to scan with a handler that throws an error');
   });
 
-  it('should remove container', async () => {
+  after(async () => {
     await container.removeContainer();
   });
 });

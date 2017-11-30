@@ -8,7 +8,7 @@ import {logSchema, credentials}      from './helpers';
 
 describe('Azure Blob Storage - Append Data Blob Tests', () => {
   let dataContainer;
-  const containerName = 'container-blob-test-append-blob';
+  const containerName = `container-blob-appen-test${uuid.v4()}`;
   const blobNamePrefix = 'blob';
 
   before(async () => {

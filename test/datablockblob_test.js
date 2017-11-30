@@ -8,7 +8,7 @@ import {schema, credentials} from './helpers';
 
 describe('Azure Blob Storage - Data Block Blob', () => {
   let dataContainer;
-  const containerName = 'container-blob-test-data-block-blob';
+  const containerName = `container-data-blob-test-${uuid.v4()}`;
   const blobNamePrefix = 'blob';
 
   before(async () => {
