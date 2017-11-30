@@ -234,3 +234,9 @@ Load the content of the underlying blob.
 ```js
     let content = await logBlob.load();
 ```
+
+# Testing
+
+To test this library in development, copy `user-config-example.yml` to
+`user-config.yml` and fill in the necessary fields.  You will need an Azure
+acocunt to test this library.
