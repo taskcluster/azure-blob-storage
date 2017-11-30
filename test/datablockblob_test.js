@@ -6,12 +6,12 @@ import _debug             from 'debug';
 const debug = _debug('azure-blob-storage-test:datablockblob');
 import {schema, credentials} from './helpers';
 
-describe('Azure Blob Storage - Data Block Blob', () => {
+suite('Azure Blob Storage - Data Block Blob', () => {
   let dataContainer;
   const containerName = `container-data-blob-test-${uuid.v4()}`;
   const blobNamePrefix = 'blob';
 
-  before(async () => {
+  suiteSetup(async () => {
     assume(credentials.accountName).is.ok();
     assume(credentials.accountKey).is.ok();
     dataContainer = await DataContainer({
@@ -23,13 +23,13 @@ describe('Azure Blob Storage - Data Block Blob', () => {
     assume(dataContainer).exists('Expected a data container instance');
   });
 
-  after(async () => {
+  suiteTeardown(async () => {
     if (dataContainer) {
       await dataContainer.removeContainer();
     }
   });
 
-  it('should create a data block blob (no cache content), list, load and delete blob', async () => {
+  test('should create a data block blob (no cache content), list, load and delete blob', async () => {
     let blobName = `${blobNamePrefix}${uuid.v4()}`;
     debug(`create a blob with name: ${blobName}`);
     let blob = await dataContainer.createDataBlockBlob({
@@ -59,7 +59,7 @@ describe('Azure Blob Storage - Data Block Blob', () => {
     await blob.remove();
   });
 
-  it('try to create a data block blob with invalid data', async () => {
+  test('try to create a data block blob with invalid data', async () => {
     let blobName = `${blobNamePrefix}${uuid.v4()}`;
     debug(`create a blob with name: ${blobName}`);
     try {
@@ -77,7 +77,7 @@ describe('Azure Blob Storage - Data Block Blob', () => {
     assume(false).is.true('Expected a validation error.');
   });
 
-  it('should create a data block blob, modify and load', async () => {
+  test('should create a data block blob, modify and load', async () => {
     let blobName = `${blobNamePrefix}${uuid.v4()}`;
     debug(`create a blob with name: ${blobName}`);
     let blob = await dataContainer.createDataBlockBlob({
@@ -98,7 +98,7 @@ describe('Azure Blob Storage - Data Block Blob', () => {
     assume(content.value).equals(40);
   });
 
-  it('should create a data block blob (with cache content), list, modify', async () => {
+  test('should create a data block blob (with cache content), list, modify', async () => {
     let blobName = `${blobNamePrefix}${uuid.v4()}`;
     debug(`create a blob with name: ${blobName}`);
     let blob = await dataContainer.createDataBlockBlob({
@@ -129,7 +129,7 @@ describe('Azure Blob Storage - Data Block Blob', () => {
     assume(blob.content.value).equals(50, 'The content of the blob should have been updated with value 50');
   });
 
-  it('should create a data block blob (no cache content), modify and throw an error', async () => {
+  test('should create a data block blob (no cache content), modify and throw an error', async () => {
     let blobName = `${blobNamePrefix}${uuid.v4()}`;
     debug(`create a blob with name: ${blobName}`);
     let blob = await dataContainer.createDataBlockBlob({
@@ -153,7 +153,7 @@ describe('Azure Blob Storage - Data Block Blob', () => {
     assume(false).is.true('The modifier function should have been thrown an error');
   });
 
-  it('should create a data block blob (with cache content), modify and throw an error', async () => {
+  test('should create a data block blob (with cache content), modify and throw an error', async () => {
     let blobName = `${blobNamePrefix}${uuid.v4()}`;
     debug(`create a blob with name: ${blobName}`);
     let blob = await dataContainer.createDataBlockBlob({
@@ -179,7 +179,7 @@ describe('Azure Blob Storage - Data Block Blob', () => {
     assume(false).is.true('The modifier function should have been thrown an error');
   });
 
-  it('should create a data block blob (no cache content), try modify a data blob blob with wrong data', async () => {
+  test('should create a data block blob (no cache content), try modify a data blob blob with wrong data', async () => {
     let blobName = `${blobNamePrefix}${uuid.v4()}`;
     debug(`create a blob with name: ${blobName}`);
     let blob = await dataContainer.createDataBlockBlob({
@@ -204,7 +204,7 @@ describe('Azure Blob Storage - Data Block Blob', () => {
     assume(false).is.true('The modifier function should have been thrown an error');
   });
 
-  it('should create a data block blob (no cache content), delete and try to modify the deleted blob', async () => {
+  test('should create a data block blob (no cache content), delete and try to modify the deleted blob', async () => {
     let blobName = `${blobNamePrefix}${uuid.v4()}`;
     debug(`create a blob with name: ${blobName}`);
     let blob = await dataContainer.createDataBlockBlob({
@@ -229,7 +229,7 @@ describe('Azure Blob Storage - Data Block Blob', () => {
     assume(false).is.true('Expected an error when trying to modify a deleted blob.');
   });
 
-  it('should create a data block blob (with cache content), modify concurrent', async () => {
+  test('should create a data block blob (with cache content), modify concurrent', async () => {
     let blobName = `${blobNamePrefix}${uuid.v4()}`;
     debug(`create a blob with name: ${blobName}`);
     let blob = await dataContainer.createDataBlockBlob({
@@ -251,7 +251,7 @@ describe('Azure Blob Storage - Data Block Blob', () => {
     assume(blob.content.value).equals(44, 'The content of the blob should have been modified.');
   });
 
-  it('should create a data block blob, modify the content, delete (ignoreChanges=true)', async () => {
+  test('should create a data block blob, modify the content, delete (ignoreChanges=true)', async () => {
     let blobName = `${blobNamePrefix}${uuid.v4()}`;
     debug(`create a blob with name: ${blobName}`);
     let blob = await dataContainer.createDataBlockBlob({
@@ -271,7 +271,7 @@ describe('Azure Blob Storage - Data Block Blob', () => {
     await blob.remove(true);
   });
 
-  it('should create a data block blob, delete the blob, try to delete' +
+  test('should create a data block blob, delete the blob, try to delete' +
     ' again the same blob (ignoreIfNotExists=true)', async () => {
     let blobName = `${blobNamePrefix}${uuid.v4()}`;
     debug(`create a blob with name: ${blobName}`);
@@ -290,7 +290,7 @@ describe('Azure Blob Storage - Data Block Blob', () => {
     await blob.remove(false, true);
   });
 
-  it('should create a data block blob, delete the blob, try to delete' +
+  test('should create a data block blob, delete the blob, try to delete' +
     ' again the same blob (ignoreIfNotExists=false)', async () => {
     let blobName = `${blobNamePrefix}${uuid.v4()}`;
     debug(`create a blob with name: ${blobName}`);
@@ -315,7 +315,7 @@ describe('Azure Blob Storage - Data Block Blob', () => {
     assume(false).is.true('An error should have been thrown because the blob was already removed.');
   });
 
-  it('should create a data block blob, modify the content, delete (ignoreChanges=false)', async () => {
+  test('should create a data block blob, modify the content, delete (ignoreChanges=false)', async () => {
     let blobName = `${blobNamePrefix}${uuid.v4()}`;
     debug(`create a blob with name: ${blobName}`);
     let blob1 = await dataContainer.createDataBlockBlob({

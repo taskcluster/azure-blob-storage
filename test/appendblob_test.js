@@ -6,12 +6,12 @@ import _debug        from 'debug';
 const debug = _debug('azure-blob-storage-test:data-container');
 import {logSchema, credentials}      from './helpers';
 
-describe('Azure Blob Storage - Append Data Blob Tests', () => {
+suite('Azure Blob Storage - Append Data Blob Tests', () => {
   let dataContainer;
   const containerName = `container-blob-appen-test${uuid.v4()}`;
   const blobNamePrefix = 'blob';
 
-  before(async () => {
+  suiteSetup(async () => {
     assume(credentials.accountName).is.ok();
     assume(credentials.accountKey).is.ok();
     dataContainer = await DataContainer({
@@ -23,13 +23,13 @@ describe('Azure Blob Storage - Append Data Blob Tests', () => {
     assume(dataContainer).exists('Expected a data container instance');
   });
 
-  after(async () => {
+  suiteTeardown(async () => {
     if (dataContainer) {
       await dataContainer.removeContainer();
     }
   });
 
-  it('should create an append data blob, append content, list, load and delete', async () => {
+  test('should create an append data blob, append content, list, load and delete', async () => {
     let blobName = `${blobNamePrefix}${uuid.v4()}`;
     debug(`create an append blob with name: ${blobName}`);
     let blob = await dataContainer.createAppendDataBlob({
@@ -63,7 +63,7 @@ describe('Azure Blob Storage - Append Data Blob Tests', () => {
     await blob.remove();
   });
 
-  it('should create an append data blob, try to append an invalid data', async () => {
+  test('should create an append data blob, try to append an invalid data', async () => {
     let blobName = `${blobNamePrefix}${uuid.v4()}`;
     debug(`create an append blob with name: ${blobName}`);
     let blob = await dataContainer.createAppendDataBlob({

@@ -6,17 +6,17 @@ import {schema, credentials}      from './helpers';
 import {DataBlockBlob, AppendDataBlob}    from '../lib/datablob';
 import uuid               from 'uuid';
 
-describe('Azure Blob Storage - Data Container Tests', () => {
+suite('Azure Blob Storage - Data Container Tests', () => {
   const containerNamePrefix = 'test';
   let containerName = `data-container-test${uuid.v4()}`;
   let container;
 
-  before(() =>{
+  suiteSetup(() =>{
     assume(credentials.accountName).is.ok();
     assume(credentials.accountKey).is.ok();
   });
 
-  it('create an instance of data container with azure credentials', async () => {
+  test('create an instance of data container with azure credentials', async () => {
     container = await DataContainer({
       credentials: credentials,
       schema: schema,
@@ -26,11 +26,11 @@ describe('Azure Blob Storage - Data Container Tests', () => {
     assume(container).exists('Expected a data container instance.');
   });
 
-  it('ensure an already created container', async () => {
+  test('ensure an already created container', async () => {
     await container.ensureContainer();
   });
 
-  it('should remove a blob', async () => {
+  test('should remove a blob', async () => {
     let blobName = 'blob-test';
     debug(`create a blob with name: ${blobName}`);
     let blob = await container.createDataBlockBlob({
@@ -42,13 +42,13 @@ describe('Azure Blob Storage - Data Container Tests', () => {
     await container.remove(blobName);
   });
 
-  it('should remove a non existing blob (ignore if not exists)', async () => {
+  test('should remove a non existing blob (ignore if not exists)', async () => {
     let blobName = 'unknown-blob';
 
     await container.remove(blobName, true);
   });
 
-  it('try to remove a non existing blob', async () => {
+  test('try to remove a non existing blob', async () => {
     let blobName = 'unknown-blob';
 
     try {
@@ -60,7 +60,7 @@ describe('Azure Blob Storage - Data Container Tests', () => {
     assume(false).is.true('Expected error when trying to remove a non existing blob.');
   });
 
-  it('should create a data block blob, load (cacheControl=true)', async () => {
+  test('should create a data block blob, load (cacheControl=true)', async () => {
     let blobName = 'block-blob-test1';
     debug(`create a blob with name: ${blobName}`);
     await container.createDataBlockBlob({name: blobName}, {value: 20});
@@ -71,7 +71,7 @@ describe('Azure Blob Storage - Data Container Tests', () => {
     assume(blob.content.value).equals(20, 'The blob should have had the content with `value` equals with 20');
   });
 
-  it('should create a data block blob, load (cacheControl=false)', async () => {
+  test('should create a data block blob, load (cacheControl=false)', async () => {
     let blobName = 'block-blob-test2';
     debug(`create a blob with name: ${blobName}`);
     await container.createDataBlockBlob({name: blobName}, {value: 20});
@@ -82,7 +82,7 @@ describe('Azure Blob Storage - Data Container Tests', () => {
     assume(blob.content).is.not.true('The content of the blob should not have been cached.');
   });
 
-  it('should create an append data blob, load the blob, append content', async () => {
+  test('should create an append data blob, load the blob, append content', async () => {
     let blobName = 'append-blob-test';
     debug(`create an append data blob with name: ${blobName}`);
     await container.createAppendDataBlob({name: blobName});
@@ -95,7 +95,7 @@ describe('Azure Blob Storage - Data Container Tests', () => {
     await blob.append({value: 30});
   });
 
-  it('should create 5 blobs, scan, list blobs', async () => {
+  test('should create 5 blobs, scan, list blobs', async () => {
     let blobNamePrefix = 'blob-test';
     debug('create 5 data block blobs');
     for (let i = 1; i <= 5; i++) {
@@ -130,7 +130,7 @@ describe('Azure Blob Storage - Data Container Tests', () => {
     assume(content.value - 10).is.most(10);
   });
 
-  it('try to scan data block blobs with a handler function that throws an error', async () => {
+  test('try to scan data block blobs with a handler function that throws an error', async () => {
     let scanError = new Error('scan error');
     let handler = async (blob) => {
       return Promise.reject(scanError);
@@ -144,7 +144,7 @@ describe('Azure Blob Storage - Data Container Tests', () => {
     assume(false).is.true('Expected error when trying to scan with a handler that throws an error');
   });
 
-  after(async () => {
+  suiteTeardown(async () => {
     await container.removeContainer();
   });
 });

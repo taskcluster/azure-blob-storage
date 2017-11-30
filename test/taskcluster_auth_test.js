@@ -8,7 +8,7 @@ import assume         from 'assume';
 import path           from 'path';
 import {schema, credentials}       from './helpers';
 
-describe('Data Container - Tests for authentication with SAS from auth.taskcluster.net', () => {
+suite('Data Container - Tests for authentication with SAS from auth.taskcluster.net', () => {
   var callCount = 0;
   var returnExpiredSAS = false;
   // Create test api
@@ -86,7 +86,7 @@ describe('Data Container - Tests for authentication with SAS from auth.taskclust
   let containerName = 'container-test';
   let containerReadOnly = 'container-read-only';
 
-  before(async () => {
+  suiteSetup(async () => {
     testing.fakeauth.start({
       'authed-client': ['*'],
       'read-only-client': [`auth:azure-blob:read-only:${credentials.accountName}/${containerReadOnly}`],
@@ -116,12 +116,12 @@ describe('Data Container - Tests for authentication with SAS from auth.taskclust
     server = await myapp.createServer();
   });
 
-  after(async () => {
+  suiteTeardown(async () => {
     await server.terminate();
     testing.fakeauth.stop();
   });
 
-  it('should create an instance of data container with read-only access and try to create a blob', async () => {
+  test('should create an instance of data container with read-only access and try to create a blob', async () => {
     dataContainer = await DataContainer({
       account: credentials.accountName,
       container: containerReadOnly,
@@ -146,7 +146,7 @@ describe('Data Container - Tests for authentication with SAS from auth.taskclust
     assume(false).is.true('It should have thrown an error because the client does not have `read-write` access.');
   });
 
-  it('should create an instance of data container', async () => {
+  test('should create an instance of data container', async () => {
     dataContainer = await DataContainer({
       account: credentials.accountName,
       container: containerName,
@@ -160,7 +160,7 @@ describe('Data Container - Tests for authentication with SAS from auth.taskclust
     assume(dataContainer).exists('Expected a data container instance.');
   });
 
-  it('should create a data block blob', async () => {
+  test('should create a data block blob', async () => {
     callCount = 0;
     await dataContainer.createDataBlockBlob({
       name: 'blobTest',
@@ -171,7 +171,7 @@ describe('Data Container - Tests for authentication with SAS from auth.taskclust
     assume(callCount).equals(1);
   });
 
-  it('should call for every operation, expiry < now => refreshed SAS', async () => {
+  test('should call for every operation, expiry < now => refreshed SAS', async () => {
     callCount = 0;
     returnExpiredSAS = true;  // This means we call for each operation
     dataContainer = await DataContainer({
@@ -198,7 +198,7 @@ describe('Data Container - Tests for authentication with SAS from auth.taskclust
     assume(callCount).equals(2, 'azureBlobSAS should have been called twice.');
   });
 
-  it('create two data block blobs in parallel, only gets SAS once', async () => {
+  test('create two data block blobs in parallel, only gets SAS once', async () => {
     dataContainer = await DataContainer({
       account: credentials.accountName,
       container: containerName,
