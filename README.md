@@ -10,10 +10,12 @@ DataContainer is a wrapper over Azure Blob Storage container which stores only o
 All the objects that will be stored will be validated against the schema that is provided at the creation 
 time of the container.
 
-The constructor of the DataContainer takes the following options:
+Create a `DataContainer` by calling the asynchronous function `DataContainer` with an options object:
 
 ```js
-{
+DataContainer = require('azure-blob-storage').default; // this is an ES6 module
+
+let container = await DataContainer({
   // Azure connection details for use with SAS from auth.taskcluster.net
   account:           '...',                  // Azure storage account name
   container:         'AzureContainerName',   // Azure container name
@@ -39,7 +41,7 @@ The constructor of the DataContainer takes the following options:
 
   // Maximum retry delay in ms (defaults to 30 seconds)
   updateMaxDelay:             30 * 1000,
-}
+});
 ```
 
 Using the `options` format provided above a shared-access-signature will be fetched from auth.taskcluster.net. To fetch the
@@ -61,8 +63,7 @@ In case you have the Azure credentials, the options are:
 
    * _ensureContainer()_
 This method will ensure that the underlying Azure container actually exists. This is an idempotent operation, and is 
-often called in service start-up. If you've used taskcluster-auth to get credentials rather than azure credentials, 
-do not use this as taskcluster-auth has already ensured the container exists for you.
+called automatically when the DataContainer is created, so there is never any need to call this method.
 
 ```js
     await container.ensureContainer();
@@ -119,6 +120,12 @@ The content will be validated against the schema defined at the container level.
    * _createAppendDataBlob(options, content)_
 Creates an instance of AppendDataBlob. Each object appended must be in JSON format and must match the schema defined at container level.
 Updating and deleting the existing content is not supported.
+
+This is equivalent to creating a new `DataBlockBlob` instance (see below), then
+calling its `create` method. Note that a `DataBlockBlob` instance cannot be
+created any other way, and that the `create` operation is unconditional, so it
+is impossible to modify an existing object for which you do not already have a
+`DataBlockBlob` instance.
 
 ```js
     let options = {
@@ -210,6 +217,8 @@ This method uses ETags to ensure that modifications are atomic: if some other
 process writes to the blob while `modifier` is executing, `modify` will
 automatically fetch the updated blob and call `modifier` again, retrying
 several times.
+
+Note that the `modifier` function must be synchronous.
 
 ### AppendDataBlob operations
 
