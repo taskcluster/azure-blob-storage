@@ -12,11 +12,12 @@ suite('Azure Blob Storage - Data Block Blob', () => {
   suiteSetup(async () => {
     assume(credentials.accountName).is.ok();
     assume(credentials.accountKey).is.ok();
-    dataContainer = await DataContainer({
+    dataContainer = new DataContainer({
       credentials: credentials,
       schema: schema,
       container: containerName,
     });
+    await dataContainer.init();
 
     assume(dataContainer).exists('Expected a data container instance');
   });

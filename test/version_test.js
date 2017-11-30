@@ -20,33 +20,37 @@ describe('Azure Blob Storage - Data Container Version Support', () => {
     assume(credentials.accountName).is.ok();
     assume(credentials.accountKey).is.ok();
 
-    dataContainerV1 = await DataContainer({
+    dataContainerV1 = new DataContainer({
       credentials: credentials,
       schema: schemaV1,
       schemaVersion: 1,
       container: containerName,
     });
+    await dataContainerV1.init();
 
-    dataContainerV2 = await DataContainer({
+    dataContainerV2 = new DataContainer({
       credentials: credentials,
       schema: schemaV2,
       schemaVersion: 2,
       container: containerName,
     });
+    await dataContainerV2.init();
 
-    logContainerV1 = await DataContainer({
+    logContainerV1 = new DataContainer({
       credentials: credentials,
       schema: logSchema,
       schemaVersion: 1,
       container: logContainerName,
     });
+    await logContainerV1.init();
 
-    logContainerV2 = await DataContainer({
+    logContainerV2 = new DataContainer({
       credentials: credentials,
       schema: logSchemaV2,
       schemaVersion: 2,
       container: logContainerName,
     });
+    await logContainerV2.init();
   });
 
   after(async () => {

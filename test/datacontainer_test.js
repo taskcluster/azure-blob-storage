@@ -15,11 +15,12 @@ suite('Azure Blob Storage - Data Container Tests', () => {
   });
 
   test('create an instance of data container with azure credentials', async () => {
-    container = await DataContainer({
+    container = new DataContainer({
       credentials: credentials,
       schema: schema,
       container: containerName,
     });
+    await container.init();
 
     assume(container).exists('Expected a data container instance.');
   });

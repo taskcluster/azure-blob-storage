@@ -124,7 +124,7 @@ suite('Data Container - Tests for authentication with SAS from auth.taskcluster.
   });
 
   test('should create an instance of data container', async () => {
-    dataContainer = await DataContainer({
+    dataContainer = new DataContainer({
       account: credentials.accountName,
       container: containerName,
       credentials: {
@@ -134,11 +134,12 @@ suite('Data Container - Tests for authentication with SAS from auth.taskcluster.
       authBaseUrl: 'http://localhost:1208',
       schema: schema,
     });
+    await dataContainer.init();
     assume(dataContainer).exists('Expected a data container instance.');
   });
 
   test('should create an instance of data container with read-only access and try to create a blob', async () => {
-    let readOnlyDataContainer = await DataContainer({
+    let readOnlyDataContainer = new DataContainer({
       account: credentials.accountName,
       container: containerName,
       credentials: {
@@ -149,6 +150,7 @@ suite('Data Container - Tests for authentication with SAS from auth.taskcluster.
       authBaseUrl: 'http://localhost:1208',
       schema: schema,
     });
+    readOnlyDataContainer.init();
     assume(readOnlyDataContainer).exists('Expected a data container instance.');
 
     try {
@@ -178,7 +180,7 @@ suite('Data Container - Tests for authentication with SAS from auth.taskcluster.
     callCount = 0;
     returnExpiredSAS = true;  // This means we call for each operation
     try {
-      dataContainer = await DataContainer({
+      dataContainer = new DataContainer({
         account: credentials.accountName,
         container: containerName,
         credentials: {
@@ -188,6 +190,7 @@ suite('Data Container - Tests for authentication with SAS from auth.taskcluster.
         authBaseUrl: 'http://localhost:1208',
         schema: schema,
       });
+      await dataContainer.init();
       let blob = await dataContainer.createDataBlockBlob({
         name: 'blobTest',
       }, {

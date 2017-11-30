@@ -10,12 +10,13 @@ DataContainer is a wrapper over Azure Blob Storage container which stores only o
 All the objects that will be stored will be validated against the schema that is provided at the creation 
 time of the container.
 
-Create a `DataContainer` by calling the asynchronous function `DataContainer` with an options object:
+Create a `DataContainer` an options object, described below, then call its
+async `init` method before doing anything else.
 
 ```js
 let {DataContainer} = require('azure-blob-storage');
 
-let container = await DataContainer({
+let container = new DataContainer({
   // Azure connection details for use with SAS from auth.taskcluster.net
   account:           '...',                  // Azure storage account name
   container:         'AzureContainerName',   // Azure container name
@@ -42,6 +43,7 @@ let container = await DataContainer({
   // Maximum retry delay in ms (defaults to 30 seconds)
   updateMaxDelay:             30 * 1000,
 });
+await container.init();
 ```
 
 Using the `options` format provided above a shared-access-signature will be fetched from auth.taskcluster.net. To fetch the
@@ -61,9 +63,16 @@ In case you have the Azure credentials, the options are:
 
 ### DataContainer operations
 
+   * _init()_ (async) -
+This method must be called after construction and before any other methods.
+
+```js
+    let container = new DataContainer({ /* ... */ });
+    await container.init();
+```
    * _ensureContainer()_
 This method will ensure that the underlying Azure container actually exists. This is an idempotent operation, and is 
-called automatically when the DataContainer is created, so there is never any need to call this method.
+called automatically by `init`, so there is never any need to call this method.
 
 ```js
     await container.ensureContainer();

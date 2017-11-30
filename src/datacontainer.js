@@ -536,10 +536,4 @@ class DataContainer {
   }
 }
 
-async function DataContainerFactory(options) {
-  let dataContainer = new DataContainer(options);
-  await dataContainer.init();
-  return dataContainer;
-}
-
-module.exports.DataContainer = DataContainerFactory;
+module.exports.DataContainer = DataContainer;
