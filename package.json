@@ -5,14 +5,11 @@
   "description": "azure-blob-storage",
   "private": true,
   "scripts": {
-    "compile": "rm -rf lib/ test/ && DEBUG= babel-compile -p taskcluster src:lib test-src:test",
-    "fastcompile": "DEBUG= babel-compile --no-clean -p taskcluster src:lib test-src:test",
-    "clean": "rm -rf lib test",
-    "pretest": "npm run compile",
-    "lint": "eslint src/*.js test-src/*.js",
-    "lintfix": "eslint --fix src/*.js test-src/*.js",
-    "test": "npm run lint && mocha --no-timeouts test/*_test.js",
-    "prepublish": "npm run compile"
+    "compile": "babel-compile -p taskcluster src:lib test:.test",
+    "lint": "eslint src/*.js test/*.js",
+    "pretest": "yarn lint && npm run compile",
+    "test": "mocha --no-timeouts .test/*_test.js",
+    "lintfix": "eslint --fix src/*.js test/*.js"
   },
   "repository": {
     "type": "git",
@@ -22,8 +19,8 @@
     "assume": "^1.2.5",
     "babel-compile": "^2.0.0",
     "babel-preset-taskcluster": "^3.0.0",
-    "eslint": "^2.10.2",
-    "eslint-config-taskcluster": "^2.0.0",
+    "eslint": "4.x",
+    "eslint-config-taskcluster": "^3.0.0",
     "lodash": "^4.17.4",
     "mocha": "^2.2.5",
     "taskcluster-lib-api": "^3.1.1",

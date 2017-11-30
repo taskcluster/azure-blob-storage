@@ -223,9 +223,9 @@ class DataBlockBlob extends DataBlob {
         options.ifMatch = this.eTag;
 
         let result = await this.blobService.putBlob(this.container.name,
-                                                    this.name,
-                                                    options,
-                                                    this._serialize(modifiedContent));
+          this.name,
+          options,
+          this._serialize(modifiedContent));
         this.eTag = result.eTag;
       } catch (error) {
         // rethrow error, if it's not caused by optimistic concurrency
@@ -241,9 +241,9 @@ class DataBlockBlob extends DataBlob {
         }
 
         await sleep(computeDelay(attemptsLeft,
-                                this.container.updateDelayFactor,
-                                this.container.updateRandomizationFactor,
-                                this.container.updateMaxDelay));
+          this.container.updateDelayFactor,
+          this.container.updateRandomizationFactor,
+          this.container.updateMaxDelay));
         await attemptModify();
       }
     };

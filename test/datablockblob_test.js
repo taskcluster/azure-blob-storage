@@ -59,7 +59,7 @@ describe('Azure Blob Storage - Data Block Blob', () => {
     await blob.remove();
   });
 
-  it('try to create a data block blob with invalid data', async() => {
+  it('try to create a data block blob with invalid data', async () => {
     let blobName = `${blobNamePrefix}${uuid.v4()}`;
     debug(`create a blob with name: ${blobName}`);
     try {
