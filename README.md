@@ -146,7 +146,7 @@ Returns true, if the blob was deleted. It makes sense to read the return value o
     await container.remove('state-blob', true);
 ```
 
-### DataBlocKBlob and AppendDataBlob
+### DataBlockBlob and AppendDataBlob
 
 DataBlockBlob is a wrapper over an Azure block blob which stores a JSON data which is conform with schema defined at container
 level.
