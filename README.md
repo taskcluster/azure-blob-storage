@@ -166,6 +166,20 @@ Returns true, if the blob was deleted. It makes sense to read the return value o
     await container.remove('state-blob', true);
 ```
 
+### Schema Versions
+
+Each blob has an associated schema version, and all schema versions are stored
+in the blob storage alongside the blobs containing user data. The version
+declared to the constructor defines the "current" version, but blobs may exist
+that use older versions.
+
+When a blob is loaded, it is validated against the schema with which it was
+stored.
+
+When a blob is written (via `create`, `modify`, or `append`), it is validated
+against the current schema. Thus operations that modify an existing blob are
+responsible for detecting and "upgrading" any old data structures.
+
 ### DataBlockBlob and AppendDataBlob
 
 DataBlockBlob is a wrapper over an Azure block blob which stores a JSON data which is conform with schema defined at container
