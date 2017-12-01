@@ -65,15 +65,16 @@ class DataBlob {
    * Creates the blob in Azure storage
    *
    * @param content - content of the blob
+   * @param options - options to pass to azure
    */
-  async _create(content) {
-    let blobOptions = {
+  async _create(content, options) {
+    let blobOptions = _.defaults({}, {
       type: this.type,
       contentType: this.contentType,
       contentLanguage: this.contentLanguage,
       contentDisposition: this.contentDisposition,
       cacheControl: this.cacheControl,
-    };
+    }, options || {});
     try {
       let result = await this.blobService.putBlob(this.container.name, this.name, blobOptions, content);
       this.eTag = result.eTag;
@@ -166,14 +167,14 @@ class DataBlockBlob extends DataBlob {
    *
    * @param content - a JSON object
    */
-  async create(content) {
+  async create(content, options) {
     assert(content, 'content must be specified');
 
     // 1. Validate the content against the schema
     await this._validateJSON(content);
 
     // 2. store the blob
-    await super._create(this._serialize(content));
+    await super._create(this._serialize(content), options);
 
     // 3. cache the raw content and not the serialized one
     this._cache(content);
@@ -317,8 +318,8 @@ class AppendDataBlob extends DataBlob {
   /**
    * Creates the blob in Azure storage
    */
-  async create() {
-    await this._create();
+  async create(options) {
+    await this._create(options);
   }
 }
 

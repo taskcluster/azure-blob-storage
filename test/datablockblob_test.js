@@ -128,6 +128,30 @@ suite('Azure Blob Storage - Data Block Blob', () => {
     assume(blob.content.value).equals(50, 'The content of the blob should have been updated with value 50');
   });
 
+  test('should create a data block blob only if it does not exist', async () => {
+    let blobName = `${blobNamePrefix}${uuid.v4()}`;
+    debug(`create a blob with name: ${blobName}`);
+    let mkblob = () => new DataBlockBlob({
+      name: blobName,
+      container: dataContainer,
+    });
+
+    // create once..
+    await mkblob().create({value: 10});
+
+    // ifNoneMatch should avoid overwriting
+    let error;
+    try {
+      await mkblob().create({value: 20}, {ifNoneMatch: '*'});
+    } catch (e) {
+      error = e;
+    }
+    assume(error.code).to.equal('BlobAlreadyExists');
+
+    // now load and see what we get, again with a new instance
+    assume(await mkblob().load()).to.deeply.equal({value: 10});
+  });
+
   test('should create a data block blob (no cache content), modify and throw an error', async () => {
     let blobName = `${blobNamePrefix}${uuid.v4()}`;
     debug(`create a blob with name: ${blobName}`);

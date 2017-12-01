@@ -198,14 +198,32 @@ Note that the `createDataBlockBlob` and `createAppendDataBlob` methods of
 
 ### DataBlockBlob operations
 
-   * _create(content)_
-Creates the blob in Azure storage having the specified content which will be validated against container schema.
+   * _create(content, options)_
+Creates the blob in Azure storage having the specified content which will be
+validated against container schema.  The `options`, if given are passed to
+[putBlob](https://taskcluster.github.io/fast-azure-storage/classes/Blob.html#method-putBlob).
 
 ```js
     let content = {
       value: 40,
-    }
-    let content = await dataBlob.create(content);
+    };
+    let options = {
+      ifMatch: 'abcd',
+    };
+    let content = await dataBlob.create(content, options);
+```
+
+To conditionally create a blob, use `ifNoneMatch: '*'` and catch the `BlobAlreadyExists` error:
+
+```js
+try {
+  await dataBlob.create(content, {ifNoneMatch: '*'});
+} catch (e) {
+  if (e.code !== 'BlobAlreadyExists') {
+    throw e;
+  }
+  console.log('blob already exists, not overwriting..');
+}
 ```
 
    * _load()_
@@ -215,15 +233,21 @@ if the `cacheContent` was set.
 ```js
     let content = await dataBlob.load();
 ```
+
    * _modify(modifier, options)_
-This method modifies the content of the blob. The `modifier` is a function that will be called with a clone of the blob
-content as first argument and it should apply the changes to the instance of the object passed as argument. 
+This method modifies the content of the blob. The `modifier` is a function that
+will be called with a clone of the blob content as first argument and it should
+apply the changes to the instance of the object passed as argument.  The
+`options`, if given, are passed to
+[putBlob](https://taskcluster.github.io/fast-azure-storage/classes/Blob.html#method-putBlob),
+with `type` and `ifMatch` used to achieve atomicity.
+
 ```js
     let modifier = (data) => {
       data.value = 'new value';
     };
     let options = {
-      prefix: 'state',
+      ifUnmodifiedSince: new Date(2017, 1, 1),
     };
     await dataBlob.modify(modifier, options);
 ```
@@ -237,8 +261,10 @@ Note that the `modifier` function must be synchronous.
 
 ### AppendDataBlob operations
 
-   * _create()_
-Creates the blob in Azure storage without initial content.
+   * _create(options)_
+Creates the blob in Azure storage without initial content.  The `options`, if
+given are passed to
+[putBlob](https://taskcluster.github.io/fast-azure-storage/classes/Blob.html#method-putBlob).
 
 ```js
     await logBlob.create();
