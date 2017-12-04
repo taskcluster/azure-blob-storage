@@ -1,10 +1,8 @@
-import assume             from 'assume';
-import DataContainer      from '../lib/datacontainer';
-import _debug             from 'debug';
-const debug = _debug('azure-blob-storage-test:data-container');
-import {schema, credentials}      from './helpers';
-import {DataBlockBlob, AppendDataBlob}    from '../lib/datablob';
-import uuid               from 'uuid';
+const assume = require('assume');
+const debug = require('debug')('azure-blob-storage-test:data-container');
+const {schema, credentials} = require('./helpers');
+const uuid = require('uuid');
+const {DataContainer, DataBlockBlob, AppendDataBlob} = require('../lib');
 
 suite('Azure Blob Storage - Data Container Tests', () => {
   const containerNamePrefix = 'test';
@@ -17,11 +15,12 @@ suite('Azure Blob Storage - Data Container Tests', () => {
   });
 
   test('create an instance of data container with azure credentials', async () => {
-    container = await DataContainer({
+    container = new DataContainer({
       credentials: credentials,
       schema: schema,
       container: containerName,
     });
+    await container.init();
 
     assume(container).exists('Expected a data container instance.');
   });
@@ -80,6 +79,11 @@ suite('Azure Blob Storage - Data Container Tests', () => {
     let blob = await container.load(blobName);
     assume(blob instanceof DataBlockBlob).is.ok();
     assume(blob.content).is.not.true('The content of the blob should not have been cached.');
+  });
+
+  test('createDataBlockBlob will overwrite a blob', async function() {
+    let blob = await container.createDataBlockBlob({name: 'block-blob-test2'}, {value: 30});
+    assume(await blob.load()).is.deeply.equal({value: 30});
   });
 
   test('try to load a blob that does not exist', async () => {

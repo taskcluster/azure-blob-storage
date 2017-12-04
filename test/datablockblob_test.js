@@ -1,10 +1,8 @@
-import DataContainer      from '../lib/datacontainer';
-import {DataBlockBlob}    from '../lib/datablob';
-import assume             from 'assume';
-import uuid               from 'uuid';
-import _debug             from 'debug';
-const debug = _debug('azure-blob-storage-test:datablockblob');
-import {schema, credentials} from './helpers';
+const assume = require('assume');
+const uuid = require('uuid');
+const {schema, credentials} = require('./helpers');
+const debug = require('debug')('azure-blob-storage-test:datablockblob');
+const {DataContainer, DataBlockBlob} = require('../lib');
 
 suite('Azure Blob Storage - Data Block Blob', () => {
   let dataContainer;
@@ -14,11 +12,12 @@ suite('Azure Blob Storage - Data Block Blob', () => {
   suiteSetup(async () => {
     assume(credentials.accountName).is.ok();
     assume(credentials.accountKey).is.ok();
-    dataContainer = await DataContainer({
+    dataContainer = new DataContainer({
       credentials: credentials,
       schema: schema,
       container: containerName,
     });
+    await dataContainer.init();
 
     assume(dataContainer).exists('Expected a data container instance');
   });
@@ -127,6 +126,30 @@ suite('Azure Blob Storage - Data Block Blob', () => {
     };
     await blob.modify(modifier);
     assume(blob.content.value).equals(50, 'The content of the blob should have been updated with value 50');
+  });
+
+  test('should create a data block blob only if it does not exist', async () => {
+    let blobName = `${blobNamePrefix}${uuid.v4()}`;
+    debug(`create a blob with name: ${blobName}`);
+    let mkblob = () => new DataBlockBlob({
+      name: blobName,
+      container: dataContainer,
+    });
+
+    // create once..
+    await mkblob().create({value: 10});
+
+    // ifNoneMatch should avoid overwriting
+    let error;
+    try {
+      await mkblob().create({value: 20}, {ifNoneMatch: '*'});
+    } catch (e) {
+      error = e;
+    }
+    assume(error.code).to.equal('BlobAlreadyExists');
+
+    // now load and see what we get, again with a new instance
+    assume(await mkblob().load()).to.deeply.equal({value: 10});
   });
 
   test('should create a data block blob (no cache content), modify and throw an error', async () => {

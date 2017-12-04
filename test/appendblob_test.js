@@ -1,10 +1,8 @@
-import assume        from 'assume';
-import DataContainer from '../lib/datacontainer';
-import {AppendDataBlob}    from '../lib/datablob';
-import uuid          from 'uuid';
-import _debug        from 'debug';
-const debug = _debug('azure-blob-storage-test:append-data-blob');
-import {logSchema, credentials}      from './helpers';
+const assume = require('assume');
+const debug = require('debug')('azure-blob-storage-test:data-blob');
+const {logSchema, credentials} = require('./helpers');
+const uuid = require('uuid');
+const {DataContainer, AppendDataBlob} = require('../lib');
 
 suite('Azure Blob Storage - Append Data Blob Tests', () => {
   let dataContainer;
@@ -14,11 +12,12 @@ suite('Azure Blob Storage - Append Data Blob Tests', () => {
   suiteSetup(async () => {
     assume(credentials.accountName).is.ok();
     assume(credentials.accountKey).is.ok();
-    dataContainer = await DataContainer({
+    dataContainer = new DataContainer({
       credentials: credentials,
       schema: logSchema,
       container: containerName,
     });
+    await dataContainer.init();
 
     assume(dataContainer).exists('Expected a data container instance');
   });

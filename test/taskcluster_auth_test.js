@@ -1,13 +1,13 @@
-import API            from 'taskcluster-lib-api';
-import testing        from 'taskcluster-lib-testing';
-import validator      from 'taskcluster-lib-validate';
-import app            from 'taskcluster-lib-app';
-import azure          from 'fast-azure-storage';
-import DataContainer  from '../lib/datacontainer';
-import assume         from 'assume';
-import path           from 'path';
-import uuid           from 'uuid';
-import {schema, credentials}       from './helpers';
+const API = require('taskcluster-lib-api');
+const testing = require('taskcluster-lib-testing');
+const validator = require('taskcluster-lib-validate');
+const app = require('taskcluster-lib-app');
+const azure = require('fast-azure-storage');
+const {DataContainer} = require('../lib');
+const assume = require('assume');
+const {schema, credentials} = require('./helpers');
+const uuid = require('uuid');
+const path = require('path');
 
 suite('Data Container - Tests for authentication with SAS from auth.taskcluster.net', () => {
   var callCount = 0;
@@ -124,7 +124,7 @@ suite('Data Container - Tests for authentication with SAS from auth.taskcluster.
   });
 
   test('should create an instance of data container', async () => {
-    dataContainer = await DataContainer({
+    dataContainer = new DataContainer({
       account: credentials.accountName,
       container: containerName,
       credentials: {
@@ -134,11 +134,12 @@ suite('Data Container - Tests for authentication with SAS from auth.taskcluster.
       authBaseUrl: 'http://localhost:1208',
       schema: schema,
     });
+    await dataContainer.init();
     assume(dataContainer).exists('Expected a data container instance.');
   });
 
   test('should create an instance of data container with read-only access and try to create a blob', async () => {
-    let readOnlyDataContainer = await DataContainer({
+    let readOnlyDataContainer = new DataContainer({
       account: credentials.accountName,
       container: containerName,
       credentials: {
@@ -149,6 +150,7 @@ suite('Data Container - Tests for authentication with SAS from auth.taskcluster.
       authBaseUrl: 'http://localhost:1208',
       schema: schema,
     });
+    readOnlyDataContainer.init();
     assume(readOnlyDataContainer).exists('Expected a data container instance.');
 
     try {
@@ -178,7 +180,7 @@ suite('Data Container - Tests for authentication with SAS from auth.taskcluster.
     callCount = 0;
     returnExpiredSAS = true;  // This means we call for each operation
     try {
-      dataContainer = await DataContainer({
+      dataContainer = new DataContainer({
         account: credentials.accountName,
         container: containerName,
         credentials: {
@@ -188,6 +190,7 @@ suite('Data Container - Tests for authentication with SAS from auth.taskcluster.
         authBaseUrl: 'http://localhost:1208',
         schema: schema,
       });
+      await dataContainer.init();
       let blob = await dataContainer.createDataBlockBlob({
         name: 'blobTest',
       }, {

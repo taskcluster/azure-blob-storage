@@ -10,12 +10,13 @@ DataContainer is a wrapper over Azure Blob Storage container which stores only o
 All the objects that will be stored will be validated against the schema that is provided at the creation 
 time of the container.
 
-Create a `DataContainer` by calling the asynchronous function `DataContainer` with an options object:
+Create a `DataContainer` an options object, described below, then call its
+async `init` method before doing anything else.
 
 ```js
-DataContainer = require('azure-blob-storage').default; // this is an ES6 module
+let {DataContainer} = require('azure-blob-storage');
 
-let container = await DataContainer({
+let container = new DataContainer({
   // Azure connection details for use with SAS from auth.taskcluster.net
   account:           '...',                  // Azure storage account name
   container:         'AzureContainerName',   // Azure container name
@@ -42,6 +43,7 @@ let container = await DataContainer({
   // Maximum retry delay in ms (defaults to 30 seconds)
   updateMaxDelay:             30 * 1000,
 });
+await container.init();
 ```
 
 Using the `options` format provided above a shared-access-signature will be fetched from auth.taskcluster.net. To fetch the
@@ -61,9 +63,16 @@ In case you have the Azure credentials, the options are:
 
 ### DataContainer operations
 
+   * _init()_ (async) -
+This method must be called after construction and before any other methods.
+
+```js
+    let container = new DataContainer({ /* ... */ });
+    await container.init();
+```
    * _ensureContainer()_
 This method will ensure that the underlying Azure container actually exists. This is an idempotent operation, and is 
-called automatically when the DataContainer is created, so there is never any need to call this method.
+called automatically by `init`, so there is never any need to call this method.
 
 ```js
     await container.ensureContainer();
@@ -106,6 +115,10 @@ Executes the provided function on each data block blob from the container, while
 Creates an instance of DataBlockBlob. Using this instance of blob, a JSON file can be stored in Azure storage. 
 The content will be validated against the schema defined at the container level.
 
+This is equivalent to creating a new `DataBlockBlob` instance with the given
+options (see below), then calling its `create` method.  This will
+unconditionally overwrite any existing blob with the same name.
+
 ```js
     let options = {
         name: 'state-blob',
@@ -121,11 +134,9 @@ The content will be validated against the schema defined at the container level.
 Creates an instance of AppendDataBlob. Each object appended must be in JSON format and must match the schema defined at container level.
 Updating and deleting the existing content is not supported.
 
-This is equivalent to creating a new `DataBlockBlob` instance (see below), then
-calling its `create` method. Note that a `DataBlockBlob` instance cannot be
-created any other way, and that the `create` operation is unconditional, so it
-is impossible to modify an existing object for which you do not already have a
-`DataBlockBlob` instance.
+This is equivalent to creating a new `AppendDataBlob` instance with the given
+options (see below), then calling its `create` and (if `content` is provided)
+`append` methods.
 
 ```js
     let options = {
@@ -155,6 +166,20 @@ Returns true, if the blob was deleted. It makes sense to read the return value o
     await container.remove('state-blob', true);
 ```
 
+### Schema Versions
+
+Each blob has an associated schema version, and all schema versions are stored
+in the blob storage alongside the blobs containing user data. The version
+declared to the constructor defines the "current" version, but blobs may exist
+that use older versions.
+
+When a blob is loaded, it is validated against the schema with which it was
+stored.
+
+When a blob is written (via `create`, `modify`, or `append`), it is validated
+against the current schema. Thus operations that modify an existing blob are
+responsible for detecting and "upgrading" any old data structures.
+
 ### DataBlockBlob and AppendDataBlob
 
 DataBlockBlob is a wrapper over an Azure block blob which stores a JSON data which is conform with schema defined at container
@@ -167,6 +192,7 @@ for e.g. logging or auditing.
 The constructor of the blob takes the following options:
 
 ```js
+let {DataBlockBlob, AppendDataBlob} = require('azure-blob-storage');
 {
    name:                '...',        // The name of the blob (required)
    container:           '...',        // An instance of DataContainer (required)
@@ -181,16 +207,37 @@ The constructor of the blob takes the following options:
 The options `cacheContent` can be set to true only for DataBlockBlob because, AppendDataBlob does not support the caching
 of its content.
 
+Note that the `createDataBlockBlob` and `createAppendDataBlob` methods of
+`DataContainer` provide shortcuts to calling these constructors.
+
 ### DataBlockBlob operations
 
-   * _create(content)_
-Creates the blob in Azure storage having the specified content which will be validated against container schema.
+   * _create(content, options)_
+Creates the blob in Azure storage having the specified content which will be
+validated against container schema.  The `options`, if given are passed to
+[putBlob](https://taskcluster.github.io/fast-azure-storage/classes/Blob.html#method-putBlob).
 
 ```js
     let content = {
       value: 40,
-    }
-    let content = await dataBlob.create(content);
+    };
+    let options = {
+      ifMatch: 'abcd',
+    };
+    let content = await dataBlob.create(content, options);
+```
+
+To conditionally create a blob, use `ifNoneMatch: '*'` and catch the `BlobAlreadyExists` error:
+
+```js
+try {
+  await dataBlob.create(content, {ifNoneMatch: '*'});
+} catch (e) {
+  if (e.code !== 'BlobAlreadyExists') {
+    throw e;
+  }
+  console.log('blob already exists, not overwriting..');
+}
 ```
 
    * _load()_
@@ -200,15 +247,21 @@ if the `cacheContent` was set.
 ```js
     let content = await dataBlob.load();
 ```
+
    * _modify(modifier, options)_
-This method modifies the content of the blob. The `modifier` is a function that will be called with a clone of the blob
-content as first argument and it should apply the changes to the instance of the object passed as argument. 
+This method modifies the content of the blob. The `modifier` is a function that
+will be called with a clone of the blob content as first argument and it should
+apply the changes to the instance of the object passed as argument.  The
+`options`, if given, are passed to
+[putBlob](https://taskcluster.github.io/fast-azure-storage/classes/Blob.html#method-putBlob),
+with `type` and `ifMatch` used to achieve atomicity.
+
 ```js
     let modifier = (data) => {
       data.value = 'new value';
     };
     let options = {
-      prefix: 'state',
+      ifUnmodifiedSince: new Date(2017, 1, 1),
     };
     await dataBlob.modify(modifier, options);
 ```
@@ -222,8 +275,10 @@ Note that the `modifier` function must be synchronous.
 
 ### AppendDataBlob operations
 
-   * _create()_
-Creates the blob in Azure storage without initial content.
+   * _create(options)_
+Creates the blob in Azure storage without initial content.  The `options`, if
+given are passed to
+[putBlob](https://taskcluster.github.io/fast-azure-storage/classes/Blob.html#method-putBlob).
 
 ```js
     await logBlob.create();
