@@ -188,10 +188,10 @@ class DataContainer {
       storedSchema = schemaBlob.content;
     } catch (error) {
       if (error.code === 'BlobNotFound') {
-        this._saveSchema();
+        await this._saveSchema();
         return;
       }
-      rethrowDebug(`Failed to save the json schema '${this.schema.id}' with error: ${error}`, error);
+      rethrowDebug(`Failed to load the json schema '${this.schema.id}' with error: ${error}`, error);
     }
 
     // integrity check
