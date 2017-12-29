@@ -48,6 +48,7 @@ suite('Data Container - Tests for authentication with SAS from auth.taskcluster.
       try {
         await blobService.createContainer(container);
       } catch (err) {
+        console.log(err);
         if (err.code !== 'ContainerAlreadyExists') {
           throw err;
         }
@@ -179,32 +180,28 @@ suite('Data Container - Tests for authentication with SAS from auth.taskcluster.
   test('should call for every operation, expiry < now => refreshed SAS', async () => {
     callCount = 0;
     returnExpiredSAS = true;  // This means we call for each operation
-    try {
-      dataContainer = new DataContainer({
-        account: credentials.accountName,
-        container: containerName,
-        credentials: {
-          clientId: 'authed-client',
-          accessToken: 'test-token',
-        },
-        authBaseUrl: 'http://localhost:1208',
-        schema: schema,
-      });
-      await dataContainer.init();
-      let blob = await dataContainer.createDataBlockBlob({
-        name: 'blobTest',
-      }, {
-        value: 50,
-      });
+    dataContainer = new DataContainer({
+      account: credentials.accountName,
+      container: containerName,
+      credentials: {
+        clientId: 'authed-client',
+        accessToken: 'test-token',
+      },
+      authBaseUrl: 'http://localhost:1208',
+      schema: schema,
+    });
+    await dataContainer.init();
+    let blob = await dataContainer.createDataBlockBlob({
+      name: 'blobTest',
+    }, {
+      value: 50,
+    });
 
-      assume(callCount).equals(2, 'azureBlobSAS should have been called twice.');
+    assume(callCount).equals(2, 'azureBlobSAS should have been called twice.');
 
-      await testing.sleep(200);
-      let content = await blob.load();
+    await testing.sleep(200);
+    let content = await blob.load();
 
-      assume(callCount).equals(3, 'azureBlobSAS should have been called three times.');
-    } catch (error) {
-      assume(false).is.true('Expected no error.');
-    }
+    assume(callCount).equals(3, 'azureBlobSAS should have been called three times.');
   });
 });
