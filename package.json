@@ -5,14 +5,19 @@
   "description": "azure-blob-storage",
   "scripts": {
     "compile": "babel-compile -p taskcluster src:lib test:.test",
+    "prepublish": "npm run compile",
     "lint": "eslint src/*.js test/*.js",
     "pretest": "yarn lint && npm run compile",
     "test": "mocha --no-timeouts .test/*_test.js",
     "lintfix": "eslint --fix src/*.js test/*.js"
   },
+  "files": [
+    "src",
+    "lib"
+  ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/elenasolomon/azure-blob-storage.git"
+    "url": "https://github.com/taskcluster/azure-blob-storage.git"
   },
   "devDependencies": {
     "assume": "^1.2.5",
