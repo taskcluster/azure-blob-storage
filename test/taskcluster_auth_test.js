@@ -11,7 +11,7 @@ const path = require('path');
 
 suite('Data Container - Tests for authentication with SAS from auth.taskcluster.net', () => {
   var callCount = 0;
-  var returnExpiredSAS = false;
+  var returnExpiringSAS = false;
   // Create test api
   let api = new API({
     title:        'Test TC-Auth',
@@ -55,9 +55,9 @@ suite('Data Container - Tests for authentication with SAS from auth.taskcluster.
     }
 
     var expiry = new Date(Date.now() + 25 * 60 * 1000);
-    // Return and old expiry, this causes a refresh on the next call
-    if (returnExpiredSAS) {
-      expiry = new Date(Date.now() + 15 * 60 * 1000 + 100);
+    // Return and old expiry, this causes a refresh in 1s
+    if (returnExpiringSAS) {
+      expiry = new Date(Date.now() + 15 * 60 * 1000 + 1000);
     }
 
     let perm = level === 'read-write';
@@ -178,33 +178,29 @@ suite('Data Container - Tests for authentication with SAS from auth.taskcluster.
 
   test('should call for every operation, expiry < now => refreshed SAS', async () => {
     callCount = 0;
-    returnExpiredSAS = true;  // This means we call for each operation
-    try {
-      dataContainer = new DataContainer({
-        account: credentials.accountName,
-        container: containerName,
-        credentials: {
-          clientId: 'authed-client',
-          accessToken: 'test-token',
-        },
-        authBaseUrl: 'http://localhost:1208',
-        schema: schema,
-      });
-      await dataContainer.init();
-      let blob = await dataContainer.createDataBlockBlob({
-        name: 'blobTest',
-      }, {
-        value: 50,
-      });
+    returnExpiringSAS = true;  // This means SAS will expire after 1s
+    dataContainer = new DataContainer({
+      account: credentials.accountName,
+      container: containerName,
+      credentials: {
+        clientId: 'authed-client',
+        accessToken: 'test-token',
+      },
+      authBaseUrl: 'http://localhost:1208',
+      schema: schema,
+    });
+    await dataContainer.init();
+    let blob = await dataContainer.createDataBlockBlob({
+      name: 'blobTest',
+    }, {
+      value: 50,
+    });
 
-      assume(callCount).equals(2, 'azureBlobSAS should have been called twice.');
+    assume(callCount).equals(1, 'azureBlobSAS should have been called once.');
 
-      await testing.sleep(200);
-      let content = await blob.load();
+    await testing.sleep(2000);
+    let content = await blob.load();
 
-      assume(callCount).equals(3, 'azureBlobSAS should have been called three times.');
-    } catch (error) {
-      assume(false).is.true('Expected no error.');
-    }
+    assume(callCount).equals(2, 'azureBlobSAS should have been called twice.');
   });
 });
