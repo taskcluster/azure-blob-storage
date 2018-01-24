@@ -97,6 +97,27 @@ suite('Azure Blob Storage - Data Block Blob', () => {
     assume(content.value).equals(40);
   });
 
+  test('should create a data block blob, modify async and load', async () => {
+    let blobName = `${blobNamePrefix}${uuid.v4()}`;
+    debug(`create a blob with name: ${blobName}`);
+    let blob = await dataContainer.createDataBlockBlob({
+      name: blobName,
+    }, {
+      value: 24,
+    });
+    assume(blob instanceof DataBlockBlob).is.ok();
+
+    debug(`update the content of the blob: ${blobName}`);
+    await blob.modify(async (data) => {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      data.value = 40;
+    });
+
+    debug('test the content updated');
+    let content = await blob.load();
+    assume(content.value).equals(40);
+  });
+
   test('should create a data block blob (with cache content), list, modify', async () => {
     let blobName = `${blobNamePrefix}${uuid.v4()}`;
     debug(`create a blob with name: ${blobName}`);

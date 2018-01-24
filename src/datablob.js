@@ -47,9 +47,9 @@ class DataBlob {
   async _validateJSON(content) {
     let result = await this.container.validate(content, this.version ? this.version:this.container.schemaVersion);
     if (!result.valid) {
-      debug(`Failed to validate the blob content against schema with id: 
+      debug(`Failed to validate the blob content against schema with id:
           ${this.container.schema.id}, errors: ${result.errors}`);
-      let error = new SchemaValidationError(`Failed to validate the blob content against schema with id: 
+      let error = new SchemaValidationError(`Failed to validate the blob content against schema with id:
                                             ${this.container.schema.id}`);
       error.content = content;
       error.validationErrors = result.errors;
@@ -216,7 +216,7 @@ class DataBlockBlob extends DataBlob {
 
         // 2. run the modifier function
         let clonedContent = _.cloneDeep(content);
-        modifier(clonedContent);
+        await modifier(clonedContent);
         modifiedContent = clonedContent;
 
         // 3. validate against the schema
