@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/elenasolomon/azure-blob-storage.svg?branch=master)](https://travis-ci.org/elenasolomon/azure-blob-storage)
+[![Build Status](https://travis-ci.org/taskcluster/azure-blob-storage.svg?branch=master)](https://travis-ci.org/taskcluster/azure-blob-storage)
 
 ## azure-blob-storage
 
