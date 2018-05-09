@@ -158,7 +158,7 @@ asynckit@^0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/asynckit/-/asynckit-0.4.0.tgz#c79ed97f7f34cb8f2ba1bc9790bcc366474b4b79"
 
-aws-sdk@^2.142.0, aws-sdk@^2.144.0, aws-sdk@^2.151.0:
+aws-sdk@^2.142.0, aws-sdk@^2.144.0:
   version "2.161.0"
   resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.161.0.tgz#2ccfce9dadaadc3d46087612e986d44fa73beef8"
   dependencies:
@@ -650,12 +650,6 @@ base64-js@^1.0.2:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/base64-js/-/base64-js-1.2.1.tgz#a91947da1f4a516ea38e5b4ec0ec3773675e0886"
 
-basic-auth@~2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/basic-auth/-/basic-auth-2.0.0.tgz#015db3f353e02e56377755f962742e8981e7bbba"
-  dependencies:
-    safe-buffer "5.1.1"
-
 bcrypt-pbkdf@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/bcrypt-pbkdf/-/bcrypt-pbkdf-1.0.1.tgz#63bc5dcb61331b92bc05fd528953c33462a06f8d"
@@ -861,10 +855,6 @@ console-control-strings@^1.0.0, console-control-strings@~1.1.0:
 content-disposition@0.5.2:
   version "0.5.2"
   resolved "https://registry.yarnpkg.com/content-disposition/-/content-disposition-0.5.2.tgz#0cf68bb9ddf5f2be7961c3a85178cb85dba78cb4"
-
-content-security-policy@^0.3.0:
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/content-security-policy/-/content-security-policy-0.3.2.tgz#bfe2238c23b231fdc04d684dbccc363df68860c1"
 
 content-type@~1.0.4:
   version "1.0.4"
@@ -1418,7 +1408,7 @@ hawk@3.1.3, hawk@~3.1.3:
     hoek "2.x.x"
     sntp "1.x.x"
 
-hawk@6.0.2, hawk@^6.0.2, hawk@~6.0.2:
+hawk@^6.0.2, hawk@~6.0.2:
   version "6.0.2"
   resolved "https://registry.yarnpkg.com/hawk/-/hawk-6.0.2.tgz#af4d914eb065f9b5ce4d9d11c1cb2126eecc3038"
   dependencies:
@@ -1458,10 +1448,6 @@ home-or-tmp@^2.0.0:
   dependencies:
     os-homedir "^1.0.0"
     os-tmpdir "^1.0.1"
-
-hsts@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/hsts/-/hsts-2.1.0.tgz#cbd6c918a2385fee1dd5680bfb2b3a194c0121cc"
 
 http-errors@1.6.2, http-errors@~1.6.2:
   version "1.6.2"
@@ -1691,7 +1677,7 @@ libxmljs@^0.18.7:
     nan "~2.5.0"
     node-pre-gyp "~0.6.32"
 
-lodash@4.17.4, lodash@^4.0.0, lodash@^4.11.1, lodash@^4.14.0, lodash@^4.15.0, lodash@^4.17.4, lodash@^4.3.0, lodash@^4.5.1, lodash@~4.17.2:
+lodash@4.17.4, lodash@^4.0.0, lodash@^4.11.1, lodash@^4.14.0, lodash@^4.17.4, lodash@^4.3.0, lodash@^4.5.1, lodash@~4.17.2:
   version "4.17.4"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.4.tgz#78203a4d1c328ae1d86dca6460e369b57f4055ae"
 
@@ -1776,22 +1762,6 @@ mocha@^4.0.1:
     he "1.1.1"
     mkdirp "0.5.1"
     supports-color "4.4.0"
-
-morgan-debug@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/morgan-debug/-/morgan-debug-2.0.0.tgz#ba4756bb76cbe7e55889656b9f117f0512444367"
-  dependencies:
-    through2 "~2.0.1"
-
-morgan@^1.9.0:
-  version "1.9.0"
-  resolved "https://registry.yarnpkg.com/morgan/-/morgan-1.9.0.tgz#d01fa6c65859b76fcf31b3cb53a3821a311d8051"
-  dependencies:
-    basic-auth "~2.0.0"
-    debug "2.6.9"
-    depd "~1.1.1"
-    on-finished "~2.3.0"
-    on-headers "~1.0.1"
 
 ms@2.0.0:
   version "2.0.0"
@@ -1884,10 +1854,6 @@ on-finished@~2.3.0:
   resolved "https://registry.yarnpkg.com/on-finished/-/on-finished-2.3.0.tgz#20f1336481b083cd75337992a16971aa2d906947"
   dependencies:
     ee-first "1.1.1"
-
-on-headers@~1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/on-headers/-/on-headers-1.0.1.tgz#928f5d0f470d49342651ea6794b0857c100693f7"
 
 once@^1.3.0, once@^1.3.3:
   version "1.4.0"
@@ -2073,7 +2039,7 @@ rc@^1.1.7:
     isarray "0.0.1"
     string_decoder "~0.10.x"
 
-readable-stream@^2.0.5, readable-stream@^2.0.6, readable-stream@^2.1.4, readable-stream@^2.1.5, readable-stream@^2.2.2:
+readable-stream@^2.0.5, readable-stream@^2.0.6, readable-stream@^2.1.4, readable-stream@^2.2.2:
   version "2.3.3"
   resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-2.3.3.tgz#368f2512d79f9d46fdfc71349ae7878bbc1eb95c"
   dependencies:
@@ -2450,21 +2416,6 @@ superagent@~3.7.0:
     qs "^6.5.1"
     readable-stream "^2.0.5"
 
-superagent@~3.8.1:
-  version "3.8.1"
-  resolved "https://registry.yarnpkg.com/superagent/-/superagent-3.8.1.tgz#2571fd921f3fcdba43ac68c3b35c91951532701f"
-  dependencies:
-    component-emitter "^1.2.0"
-    cookiejar "^2.1.0"
-    debug "^3.1.0"
-    extend "^3.0.0"
-    form-data "^2.3.1"
-    formidable "^1.1.1"
-    methods "^1.1.1"
-    mime "^1.4.1"
-    qs "^6.5.1"
-    readable-stream "^2.0.5"
-
 supports-color@4.4.0:
   version "4.4.0"
   resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-4.4.0.tgz#883f7ddabc165142b2a61427f3352ded195d1a3e"
@@ -2526,59 +2477,6 @@ taskcluster-client@3.0.3:
     slugid "^1.1.0"
     superagent "~3.7.0"
 
-taskcluster-client@^3.1.0, taskcluster-client@^3.1.1:
-  version "3.1.1"
-  resolved "https://registry.yarnpkg.com/taskcluster-client/-/taskcluster-client-3.1.1.tgz#8420c269146d4be0774a49e6685a972d3ae40c59"
-  dependencies:
-    amqplib "^0.5.1"
-    babel-runtime "^6.26.0"
-    debug "^3.1.0"
-    hawk "^6.0.2"
-    lodash "^4.17.4"
-    promise "^8.0.1"
-    slugid "^1.1.0"
-    superagent "~3.8.1"
-
-taskcluster-lib-api@^4.0.0:
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/taskcluster-lib-api/-/taskcluster-lib-api-4.0.0.tgz#c0e58a67404f0d95ecd775a91d89f4f9df25caa2"
-  dependencies:
-    ajv "^5.3.0"
-    aws-sdk "^2.151.0"
-    babel-runtime "^6.26.0"
-    body-parser "1.18.2"
-    debug "^3.1.0"
-    express "4.16.2"
-    hawk "6.0.2"
-    lodash "^4.15.0"
-    promise "^8.0.1"
-    slugid "^1.1.0"
-    taskcluster-client "^3.1.0"
-    taskcluster-lib-scopes "^1.2.0"
-    type-is "^1.6.15"
-    uuid "^3.1.0"
-
-taskcluster-lib-app@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/taskcluster-lib-app/-/taskcluster-lib-app-2.1.0.tgz#21f0b4e112cd26c2ebf5e6db9401d63091bd2a5f"
-  dependencies:
-    babel-runtime "^6.26.0"
-    content-security-policy "^0.3.0"
-    debug "^3.1.0"
-    express "4.16.2"
-    express-sslify "1.2.0"
-    hsts "^2.1.0"
-    lodash "4.17.4"
-    morgan "^1.9.0"
-    morgan-debug "^2.0.0"
-    promise "^8.0.1"
-
-taskcluster-lib-scopes@^1.2.0:
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/taskcluster-lib-scopes/-/taskcluster-lib-scopes-1.5.0.tgz#c7df2ef1bb92d6f00bc319da6dc12949e0f3359c"
-  dependencies:
-    babel-runtime "^6.26.0"
-
 taskcluster-lib-testing@^2.0.2:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/taskcluster-lib-testing/-/taskcluster-lib-testing-2.0.2.tgz#4b0d846083b3a24a0e8339cacabcc0ed32e72f99"
@@ -2619,13 +2517,6 @@ taskcluster-lib-validate@^3.0.1:
 text-table@~0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
-
-through2@~2.0.1:
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/through2/-/through2-2.0.3.tgz#0004569b37c7c74ba39c43f3ced78d1ad94140be"
-  dependencies:
-    readable-stream "^2.1.5"
-    xtend "~4.0.1"
 
 through@^2.3.6:
   version "2.3.8"
@@ -2679,7 +2570,7 @@ type-detect@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/type-detect/-/type-detect-1.0.0.tgz#762217cc06db258ec48908a1298e8b95121e8ea2"
 
-type-is@^1.6.15, type-is@~1.6.15:
+type-is@~1.6.15:
   version "1.6.15"
   resolved "https://registry.yarnpkg.com/type-is/-/type-is-1.6.15.tgz#cab10fb4909e441c82842eafe1ad646c81804410"
   dependencies:
@@ -2790,10 +2681,6 @@ xmlbuilder@4.2.1, xmlbuilder@^4.1.0:
   resolved "https://registry.yarnpkg.com/xmlbuilder/-/xmlbuilder-4.2.1.tgz#aa58a3041a066f90eaa16c2f5389ff19f3f461a5"
   dependencies:
     lodash "^4.0.0"
-
-xtend@~4.0.1:
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/xtend/-/xtend-4.0.1.tgz#a5c6d532be656e23db820efb943a1f04998d63af"
 
 yallist@^2.1.2:
   version "2.1.2"

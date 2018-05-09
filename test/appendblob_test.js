@@ -10,12 +10,12 @@ suite('Azure Blob Storage - Append Data Blob Tests', () => {
   const blobNamePrefix = 'blob';
 
   suiteSetup(async () => {
-    assume(credentials.accountName).is.ok();
-    assume(credentials.accountKey).is.ok();
+    assume(credentials.accountId).is.ok();
+    assume(credentials.accessKey).is.ok();
     dataContainer = new DataContainer({
       credentials: credentials,
       schema: logSchema,
-      container: containerName,
+      containerName,
     });
     await dataContainer.init();
 

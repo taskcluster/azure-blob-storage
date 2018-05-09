@@ -17,16 +17,8 @@ async `init` method before doing anything else.
 let {DataContainer} = require('azure-blob-storage');
 
 let container = new DataContainer({
-  // Azure connection details for use with SAS from auth.taskcluster.net
-  account:           '...',                  // Azure storage account name
-  container:         'AzureContainerName',   // Azure container name
-  // TaskCluster credentials
-  credentials: {
-    clientId:        '...',                  // TaskCluster clientId
-    accessToken:     '...',                  // TaskCluster accessToken
-  },
-  accessLevel:       'read-write',           // The access level of the container: read-only/read-write (optional)
-  authBaseUrl:       '...',                  // baseUrl for auth (optional)
+  containername:     'AzureContainerName',   // Azure container name
+  credentials:       ...,                    // see below
   schema:            '...',                  // JSON schema object
   schemaVersion:     1,                      // JSON schema version. (optional)
                                              // The default value is 1.
@@ -46,18 +38,58 @@ let container = new DataContainer({
 await container.init();
 ```
 
-Using the `options` format provided above a shared-access-signature will be fetched from auth.taskcluster.net. To fetch the
-shared-access-signature the following scope is required:  
-    `auth:azure-blob:<level>:<account>/<container>`
+#### Credentials
 
-In case you have the Azure credentials, the options are:
+Credentials can be specified to this library in a variety of ways.  Note that
+these match those of the
+[fast-azure-storage](https://github.com/taskcluster/fast-azure-storage)
+library.
+
+##### Raw Azure credentials
+
+Given an accountName and accompanying account key, configure access like this:
+
 ```js
 {
-   // Azure credentials
-   credentials: {
-     accountName: '...',         // Azure account name
-     accountKey: '...',          // Azure account key
-   }
+  // Azure connection details
+  tableName: "AzureTableName",
+  // Azure credentials
+  credentials: {
+    accountId: "...",
+    accessKey: "...",
+  },
+}
+```
+
+##### SAS Function
+
+The underlying
+[fast-azure-storage](https://github.com/taskcluster/fast-azure-storage) library
+allows use of SAS credentials, including dynamic generation of SAS credentials
+as needed. That support can be used transparently from this library:
+
+```js
+{
+  tableName: 'AzureTableName',
+  credentials: {
+    accountId: '...',
+    sas: sas   // sas in querystring form: "se=...&sp=...&sig=..."
+  };
+}
+```
+
+or
+
+```js
+{
+  tableName: 'AzureTableName',
+  credentials: {
+    accountId: '...',
+    sas: function() {
+      return new Promise(/* fetch SAS from somewhere */);
+    },
+    minSASAuthExpiry:   15 * 60 * 1000 // time before refreshing the SAS
+  };
 }
 ```
 

@@ -1,3 +1,4 @@
+import _                from 'lodash';
 import assert           from 'assert';
 import azure            from 'fast-azure-storage';
 import taskcluster      from 'taskcluster-client';
@@ -19,16 +20,11 @@ class DataContainer {
    * Options:
    * ```js
    * {
-   *   // Azure connection details for use with SAS from auth.taskcluster.net
-   *   account:           '...',                  // Azure storage account name
-   *   container:         'AzureContainerName',   // Azure container name
-   *   // TaskCluster credentials
-   *   credentials: {
+   *   containerName:     'AzureContainerName',   // Azure container name
+   *   credentials:                               // See README
    *     clientId:        '...',                  // TaskCluster clientId
    *     accessToken:     '...',                  // TaskCluster accessToken
    *   },
-   *   accessLevel:       'read-write',           // The access level of the container: read-only/read-write (optional)
-   *   authBaseUrl:       '...',                  // baseUrl for auth (optional)
    *   schema:            '...',                  // JSON schema object
    *   schemaVersion:     1,                      // JSON schema version. (optional)
    *                                              // The default value is 1.
@@ -45,76 +41,30 @@ class DataContainer {
    *   // Maximum retry delay in ms (defaults to 30 seconds)
    *   updateMaxDelay:             30 * 1000,
    * }
-   * ```
-   * Using the `options` format provided above a shared-access-signature will be
-   * fetched from auth.taskcluster.net. The goal with this is to reduce secret
-   * configuration and reduce exposure of our Azure `accountKey`. To fetch the
-   * shared-access-signature the following scope is required:
-   *   `auth:azure-blob:<level>:<account>/<container>`
-   *
-   * In case you have the Azure credentials, the options are:
-   * ```js
-   * {
-   *    // Azure credentials
-   *    credentials: {
-   *      accountName: '...',         // Azure account name
-   *      accountKey: '...',          // Azure account key
-   *    }
-   * }
-   * ```
    */
   constructor(options) {
     // validate the options
-    assert(options,                                 'options must be given');
-    assert(options.container,                       'options.container must be given');
-    assert(typeof options.container === 'string',   'options.container is not a string');
-    assert(options.schema,                          'options.schema must be given');
-    assert(typeof options.schema === 'object',      'options.schema is not an object');
+    assert(options, 'options must be given');
+    assert(!options.account, 'options.account is no longer allowed');
+    assert(!options.container, 'options.container is now options.containerName');
+    assert(!options.authBaseUrl, 'options.authBaseUrl is no longer allowed');
+    assert(!options.credentials.clientId, 'Taskcluster credentials are no longer allowed');
+    assert(options.containerName, 'options.containerName must be given');
+    assert(typeof options.containerName === 'string', 'options.containerName is not a string');
+    assert(options.schema, 'options.schema must be given');
+    assert(typeof options.schema === 'object', 'options.schema is not an object');
 
     if (options.schemaVersion) {
       assert(typeof options.schemaVersion === 'number', 'options.schemaVersion is not a number');
     }
 
     // create an Azure Blob Storage client
-    let blobService;
-    if (options.account) {
-      assert(typeof options.account === 'string',
-        'Expected `options.account` to be a string, or undefined.');
-
-      // Create auth client to fetch SAS from auth.taskcluster.net
-      let auth = new taskcluster.Auth({
-        credentials:    options.credentials,
-        baseUrl:        options.authBaseUrl,
-      });
-
-      // Create azure blob storage client with logic for fetch SAS
-      blobService = new azure.Blob({
-        timeout:          constants.AZURE_BLOB_TIMEOUT,
-        accountId:        options.account,
-        minSASAuthExpiry: 15 * 60 * 1000,
-        sas: async () => {
-          let level = options.accessLevel || 'read-write';
-          let result = await auth.azureBlobSAS(options.account, options.container, level);
-          return result.sas;
-        },
-      });
-    } else {
-      assert(options.credentials.accountName,
-        'The `options.credentials.accountName` must be supplied.');
-      assert(options.credentials.accountKey || options.credentials.sas,
-        'The `options.credentials.accountKey` or `options.credentials.sas` must be supplied.');
-
-      // Create azure blob storage client with accessKey
-      blobService = new azure.Blob({
-        timeout:    constants.AZURE_BLOB_TIMEOUT,
-        accountId:  options.credentials.accountName,
-        accessKey:  options.credentials.accountKey,
-        sas:        options.credentials.sas,
-      });
-    }
+    const blobService = new azure.Blob(_.defaults({
+      timeout:          constants.AZURE_BLOB_TIMEOUT,
+    }, options.credentials));
 
     this.blobService = blobService;
-    this.name        = options.container;
+    this.name        = options.containerName;
     // _validateFunctionMap is a mapping from schema version to validation function generated
     // after the ajv schema compile
     this._validateFunctionMap = {};

@@ -15,7 +15,7 @@ suite('Azure Blob Storage - Data Block Blob', () => {
     dataContainer = new DataContainer({
       credentials: credentials,
       schema: schema,
-      container: containerName,
+      containerName,
     });
     await dataContainer.init();
 

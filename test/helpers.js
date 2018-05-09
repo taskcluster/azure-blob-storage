@@ -17,10 +17,7 @@ let schemaV2 = fs.readFileSync(`${__dirname}/schemas/schema_v2.json`, 'utf8');
 let schemaV2Obj = JSON.parse(schemaV2);
 
 let cfg = config({});
-let credentials = {
-  accountName: cfg.azureBlob.accountName,
-  accountKey: cfg.azureBlob.accountKey,
-};
+let credentials = cfg.azureBlob;
 
 module.exports = {
   schema: schemaObj,

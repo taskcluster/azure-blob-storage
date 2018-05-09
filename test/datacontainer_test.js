@@ -18,7 +18,7 @@ suite('Azure Blob Storage - Data Container Tests', () => {
     container = new DataContainer({
       credentials: credentials,
       schema: schema,
-      container: containerName,
+      containerName,
     });
     await container.init();
 
