@@ -335,6 +335,5 @@ Load the content of the underlying blob.
 
 # Testing
 
-To test this library in development, copy `user-config-example.yml` to
-`user-config.yml` and fill in the necessary fields.  You will need an Azure
-acocunt to test this library.
+To test this library, set the environment variables `AZURE_ACCOUNT_KEY` and
+`AZURE_ACCOUNT_ID` appropriately before running the tests.
