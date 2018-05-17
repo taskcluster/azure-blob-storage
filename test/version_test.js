@@ -17,8 +17,8 @@ describe('Azure Blob Storage - Data Container Version Support', () => {
   let logContainerV2;
 
   before(async () =>{
-    assume(credentials.accountName).is.ok();
-    assume(credentials.accountKey).is.ok();
+    assume(credentials.accountId).is.ok();
+    assume(credentials.accessKey).is.ok();
 
     dataContainerV1 = new DataContainer({
       credentials: credentials,

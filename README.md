@@ -47,7 +47,7 @@ library.
 
 ##### Raw Azure credentials
 
-Given an accountName and accompanying account key, configure access like this:
+Given an accountId and accompanying accessKey, configure access like this:
 
 ```js
 {
