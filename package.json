@@ -27,10 +27,7 @@
     "eslint-config-taskcluster": "^3.0.0",
     "lodash": "^4.17.4",
     "mocha": "^4.0.1",
-    "taskcluster-lib-api": "^4.0.0",
-    "taskcluster-lib-app": "^2.1.0",
     "taskcluster-lib-testing": "^2.0.2",
-    "taskcluster-lib-validate": "^3.0.1",
     "typed-env-config": "^1.1.0"
   },
   "dependencies": {
@@ -39,7 +36,6 @@
     "debug": "^3.1.0",
     "fast-azure-storage": "^2.0.0",
     "source-map-support": "^0.5.0",
-    "taskcluster-client": "^3.1.1",
     "uuid": "^3.1.0"
   },
   "main": "./lib/index"

@@ -10,15 +10,15 @@ suite('Azure Blob Storage - Data Container Tests', () => {
   let container;
 
   suiteSetup(() =>{
-    assume(credentials.accountName).is.ok();
-    assume(credentials.accountKey).is.ok();
+    assume(credentials.accountId).is.ok();
+    assume(credentials.accessKey).is.ok();
   });
 
   test('create an instance of data container with azure credentials', async () => {
     container = new DataContainer({
       credentials: credentials,
       schema: schema,
-      container: containerName,
+      containerName,
     });
     await container.init();
 

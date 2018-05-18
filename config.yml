@@ -1,4 +1,4 @@
 defaults:
   azureBlob:
-      accountName: !env AZURE_ACCOUNT_NAME
-      accountKey: !env AZURE_ACCOUNT_KEY
+    accountId: !env AZURE_ACCOUNT_ID
+    accessKey: !env AZURE_ACCOUNT_KEY

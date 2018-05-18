@@ -17,14 +17,14 @@ describe('Azure Blob Storage - Data Container Version Support', () => {
   let logContainerV2;
 
   before(async () =>{
-    assume(credentials.accountName).is.ok();
-    assume(credentials.accountKey).is.ok();
+    assume(credentials.accountId).is.ok();
+    assume(credentials.accessKey).is.ok();
 
     dataContainerV1 = new DataContainer({
       credentials: credentials,
       schema: schemaV1,
       schemaVersion: 1,
-      container: containerName,
+      containerName,
     });
     await dataContainerV1.init();
 
@@ -32,7 +32,7 @@ describe('Azure Blob Storage - Data Container Version Support', () => {
       credentials: credentials,
       schema: schemaV2,
       schemaVersion: 2,
-      container: containerName,
+      containerName,
     });
     await dataContainerV2.init();
 
@@ -40,7 +40,7 @@ describe('Azure Blob Storage - Data Container Version Support', () => {
       credentials: credentials,
       schema: logSchema,
       schemaVersion: 1,
-      container: logContainerName,
+      containerName: logContainerName,
     });
     await logContainerV1.init();
 
@@ -48,7 +48,7 @@ describe('Azure Blob Storage - Data Container Version Support', () => {
       credentials: credentials,
       schema: logSchemaV2,
       schemaVersion: 2,
-      container: logContainerName,
+      containerName: logContainerName,
     });
     await logContainerV2.init();
   });
