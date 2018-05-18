@@ -1,7 +1,6 @@
 import _                from 'lodash';
 import assert           from 'assert';
 import azure            from 'fast-azure-storage';
-import taskcluster      from 'taskcluster-client';
 import constants        from './constants';
 import Ajv              from 'ajv';
 import {rethrowDebug}   from './utils';

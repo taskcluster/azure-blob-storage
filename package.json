@@ -27,7 +27,6 @@
     "eslint-config-taskcluster": "^3.0.0",
     "lodash": "^4.17.4",
     "mocha": "^4.0.1",
-    "taskcluster-lib-testing": "^2.0.2",
     "typed-env-config": "^1.1.0"
   },
   "dependencies": {
