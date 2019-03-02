@@ -1,4 +1,4 @@
-import _debug from 'debug';
+const _debug = require('debug');
 const debug = _debug('azure-blob-storage:utils');
 
 exports.rethrowDebug = (errorMessage, error) => {

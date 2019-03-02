@@ -1,9 +1,9 @@
-import assert from 'assert';
-import _debug from 'debug';
-import _      from 'lodash';
+const assert = require('assert');
+const _debug = require('debug');
+const _ = require('lodash');
 const debug = _debug('azure-blob-storage:blob');
-import {CongestionError, SchemaValidationError, BlobSerializationError} from './customerrors';
-import {rethrowDebug, sleep, computeDelay} from './utils';
+const {CongestionError, SchemaValidationError, BlobSerializationError} = require('./customerrors');
+const {rethrowDebug, sleep, computeDelay} = require('./utils');
 
 /**
  * Base class for data blobs

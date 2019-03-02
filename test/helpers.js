@@ -1,4 +1,4 @@
-import fs       from 'fs';
+const fs = require('fs');
 
 let schema = fs.readFileSync(`${__dirname}/schemas/data_block_blob_schema.json`, 'utf8');
 let schemaObj = JSON.parse(schema);

@@ -1,13 +1,13 @@
-import _                from 'lodash';
-import assert           from 'assert';
-import azure            from 'fast-azure-storage';
-import constants        from './constants';
-import Ajv              from 'ajv';
-import {rethrowDebug}   from './utils';
-import _debug           from 'debug';
+const _ = require('lodash');
+const assert = require('assert');
+const azure = require('fast-azure-storage');
+const constants = require('./constants');
+const Ajv = require('ajv');
+const {rethrowDebug} = require('./utils');
+const _debug = require('debug');
 const debug = _debug('azure-blob-storage:account');
-import {DataBlockBlob, AppendDataBlob} from './datablob';
-import {SchemaIntegrityCheckError} from './customerrors';
+const {DataBlockBlob, AppendDataBlob} = require('./datablob');
+const {SchemaIntegrityCheckError} = require('./customerrors');
 
 /**
  * This class represents an Azure Blob Storage container which stores objects in JSON format.

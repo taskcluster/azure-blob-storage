@@ -2,7 +2,7 @@ const {schemaV1, schemaV2, logSchema, logSchemaV2, credentials} = require('./hel
 const assume = require('assume');
 const debug = require('debug')('azure-blob-storage-test:version');
 const uuid = require('uuid');
-const {DataContainer, DataBlockBlob} = require('../lib');
+const {DataContainer, DataBlockBlob} = require('../');
 
 suite('Azure Blob Storage - Data Container Version Support', () => {
 
