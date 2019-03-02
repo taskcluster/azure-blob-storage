@@ -4,7 +4,7 @@ const debug = require('debug')('azure-blob-storage-test:version');
 const uuid = require('uuid');
 const {DataContainer, DataBlockBlob} = require('../lib');
 
-describe('Azure Blob Storage - Data Container Version Support', () => {
+suite('Azure Blob Storage - Data Container Version Support', () => {
 
   let containerName = `${uuid.v4()}`;
   let logContainerName = `${uuid.v4()}`;
@@ -16,7 +16,7 @@ describe('Azure Blob Storage - Data Container Version Support', () => {
   let logContainerV1;
   let logContainerV2;
 
-  before(async () =>{
+  suiteSetup(async () =>{
     assume(credentials.accountId).is.ok();
     assume(credentials.accessKey).is.ok();
 
@@ -53,7 +53,7 @@ describe('Azure Blob Storage - Data Container Version Support', () => {
     await logContainerV2.init();
   });
 
-  after(async () => {
+  suiteTeardown(async () => {
     if (dataContainerV1) {
       await dataContainerV1.removeContainer();
     }
@@ -69,7 +69,7 @@ describe('Azure Blob Storage - Data Container Version Support', () => {
     }
   });
 
-  it('should create a dataBlockBlob in a container with version 1 of schema', async () => {
+  test('should create a dataBlockBlob in a container with version 1 of schema', async () => {
     let blobName = `${blobV1Name}`;
     debug(`create a dataBlockBlob with name: ${blobName}`);
     let blob = await dataContainerV1.createDataBlockBlob({
@@ -93,7 +93,7 @@ describe('Azure Blob Storage - Data Container Version Support', () => {
     assume(data.value).equals(40);
   });
 
-  it('should create a dataBlockBlob in a data container with version 2 of json schema', async () => {
+  test('should create a dataBlockBlob in a data container with version 2 of json schema', async () => {
     let blobName = `${blobV2Name}`;
     debug(`create a dataBlockBlob with name: ${blobName}`);
     let blob = await dataContainerV2.createDataBlockBlob({
@@ -117,7 +117,7 @@ describe('Azure Blob Storage - Data Container Version Support', () => {
     assume(data.name).equals('blobV2');
   });
 
-  it('should load a dataBlockBlob with v1 from a data container with v2', async () => {
+  test('should load a dataBlockBlob with v1 from a data container with v2', async () => {
     debug('load the blob created with v1 of the schema');
     let blobV1 = await dataContainerV2.load(blobV1Name, true);
 
@@ -132,7 +132,7 @@ describe('Azure Blob Storage - Data Container Version Support', () => {
     assume(content.value).equals(100);
   });
 
-  it('should create an append data blob with version 1 of schema, update the content with v2', async () => {
+  test('should create an append data blob with version 0 of schema, update the content with v2', async () => {
     debug(`create an append data blob with name ${appendBlobName}`);
     let appendBlob = await logContainerV1.createAppendDataBlob({name: appendBlobName});
 

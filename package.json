@@ -20,13 +20,13 @@
     "url": "https://github.com/taskcluster/azure-blob-storage.git"
   },
   "devDependencies": {
-    "assume": "^1.2.5",
+    "assume": "^2.1.0",
     "babel-compile": "^2.0.0",
     "babel-preset-taskcluster": "^3.0.0",
     "eslint": "5.15.0",
     "eslint-config-taskcluster": "^4.0.0",
     "lodash": "^4.17.4",
-    "mocha": "^4.0.1",
+    "mocha": "^6.0.2",
     "typed-env-config": "^1.1.0"
   },
   "dependencies": {
