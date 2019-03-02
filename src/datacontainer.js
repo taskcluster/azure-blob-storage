@@ -70,7 +70,7 @@ class DataContainer {
 
     this.schema      = options.schema;
     this.schemaVersion = options.schemaVersion? options.schemaVersion : 1;
-    this.schema.id = this._getSchemaId(this.schemaVersion);
+    this.schema.$id = this._getSchemaId(this.schemaVersion);
 
     this.validator   = Ajv({
       useDefaults: true,
@@ -78,6 +78,7 @@ class DataContainer {
       verbose: true,
       allErrors: true,
     });
+    this.validator.addMetaSchema(require('ajv/lib/refs/json-schema-draft-06.json'));
 
     this.updateRetries = options.updateRetries || 10;
     this.updateDelayFactor = options.updateDelayFactor || 100;
@@ -119,7 +120,7 @@ class DataContainer {
       // Ignore the 'AuthorizationPermissionMismatch' error that will be throw if the client has read-only rights.
       // The save of the schema can be done only by the clients with read-write access.
       if (error.code !== 'AuthorizationPermissionMismatch') {
-        rethrowDebug(`Failed to save the json schema '${this.schema.id}' with error: ${error}`, error);
+        rethrowDebug(`Failed to save the json schema '${this.schema.$id}' with error: ${error}`, error);
       }
     }
   }
@@ -140,7 +141,7 @@ class DataContainer {
         await this._saveSchema();
         return;
       }
-      rethrowDebug(`Failed to load the json schema '${this.schema.id}' with error: ${error}`, error);
+      rethrowDebug(`Failed to load the json schema '${this.schema.$id}' with error: ${error}`, error);
     }
 
     // integrity check
@@ -174,10 +175,15 @@ class DataContainer {
         try {
           let schemaBlob = await this.blobService.getBlob(this.name, this._getSchemaName(schemaVersion));
           let schema = JSON.parse(schemaBlob.content);
+          // upgrade to a v6 schema
+          if (schema.id && !schema.$id) {
+            schema.$id = schema.id;
+            delete schema.id;
+          }
           // cache the ajv validate function
           this._validateFunctionMap[schemaVersion] = this.validator.compile(schema);
         } catch (error) {
-          rethrowDebug(`Failed to save the json schema '${this.schema.id}' with error: ${error}`, error);
+          rethrowDebug(`Failed to save the json schema '${this.schema.$id}' with error: ${error}`, error);
         }
       }
     }
