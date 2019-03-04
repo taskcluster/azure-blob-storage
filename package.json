@@ -4,38 +4,30 @@
   "author": "Elena Solomon <elenasolomon28@gmail.com>",
   "description": "azure-blob-storage",
   "scripts": {
-    "compile": "babel-compile -p taskcluster src:lib test:.test",
-    "prepublish": "npm run compile",
     "lint": "eslint src/*.js test/*.js",
-    "pretest": "yarn lint && npm run compile",
-    "test": "mocha --no-timeouts .test/*_test.js",
+    "pretest": "yarn lint",
+    "test": "mocha --no-timeouts test/*_test.js",
     "lintfix": "eslint --fix src/*.js test/*.js"
   },
   "files": [
-    "src",
-    "lib"
+    "src/"
   ],
   "repository": {
     "type": "git",
     "url": "https://github.com/taskcluster/azure-blob-storage.git"
   },
   "devDependencies": {
-    "assume": "^1.2.5",
-    "babel-compile": "^2.0.0",
-    "babel-preset-taskcluster": "^3.0.0",
-    "eslint": "4.x",
-    "eslint-config-taskcluster": "^3.0.0",
-    "lodash": "^4.17.4",
-    "mocha": "^4.0.1",
-    "typed-env-config": "^1.1.0"
+    "assume": "^2.1.0",
+    "eslint": "5.15.0",
+    "eslint-config-taskcluster": "^4.0.0",
+    "mocha": "^6.0.2"
   },
   "dependencies": {
-    "ajv": "^5.5.0",
-    "babel-runtime": "^6.20.0",
-    "debug": "^3.1.0",
-    "fast-azure-storage": "^2.3.0",
-    "source-map-support": "^0.5.0",
-    "uuid": "^3.1.0"
+    "ajv": "^6.9.2",
+    "debug": "^4.1.1",
+    "fast-azure-storage": "^2.3.1",
+    "lodash": "^4.17.11",
+    "uuid": "^3.3.2"
   },
-  "main": "./lib/index"
+  "main": "./src/index"
 }

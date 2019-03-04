@@ -2,7 +2,7 @@ const assume = require('assume');
 const debug = require('debug')('azure-blob-storage-test:data-blob');
 const {logSchema, credentials} = require('./helpers');
 const uuid = require('uuid');
-const {DataContainer, AppendDataBlob} = require('../lib');
+const {DataContainer, AppendDataBlob} = require('../');
 
 suite('Azure Blob Storage - Append Data Blob Tests', () => {
   let dataContainer;

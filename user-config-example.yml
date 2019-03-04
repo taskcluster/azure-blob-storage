@@ -1,6 +1,0 @@
-defaults:
-  azureBlob:
-      # note that you can get access to the taskcluster "jungle" account for testing purposes.
-      accountId: 'your account id'
-      accessKey: 'your account key'
-

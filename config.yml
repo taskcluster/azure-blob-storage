@@ -1,4 +1,0 @@
-defaults:
-  azureBlob:
-    accountId: !env AZURE_ACCOUNT_ID
-    accessKey: !env AZURE_ACCOUNT_KEY

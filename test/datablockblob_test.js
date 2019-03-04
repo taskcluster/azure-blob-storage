@@ -2,7 +2,7 @@ const assume = require('assume');
 const uuid = require('uuid');
 const {schema, credentials} = require('./helpers');
 const debug = require('debug')('azure-blob-storage-test:datablockblob');
-const {DataContainer, DataBlockBlob} = require('../lib');
+const {DataContainer, DataBlockBlob} = require('../');
 
 suite('Azure Blob Storage - Data Block Blob', () => {
   let dataContainer;
