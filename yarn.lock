@@ -132,7 +132,7 @@ assign-symbols@^1.0.0:
   resolved "https://registry.yarnpkg.com/assign-symbols/-/assign-symbols-1.0.0.tgz#59667f41fadd4f20ccbc2bb96b8d4f7f78ec0367"
   integrity sha1-WWZ/QfrdTyDMvCu5a41Pf3jsA2c=
 
-assume@^2.1.0:
+assume@2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/assume/-/assume-2.1.0.tgz#16939464de8a4bfdfe3d5ab5256c5ae08a1ddf62"
   integrity sha512-ugye6y85HyKkMe1GOprT9eGImzGDJ/Yci7/beHE0M63osWljUoiQ7ix6WwxWK5gvEVFnP7b65/ZS7jf1Um17MQ==
@@ -500,7 +500,7 @@ escape-string-regexp@1.0.5, escape-string-regexp@^1.0.5:
   resolved "https://registry.yarnpkg.com/escape-string-regexp/-/escape-string-regexp-1.0.5.tgz#1b61c0562190a8dff6ae3bb2cf0200ca130b86d4"
   integrity sha1-G2HAViGQqN/2rjuyzwIAyhMLhtQ=
 
-eslint-config-taskcluster@^4.0.0:
+eslint-config-taskcluster@4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/eslint-config-taskcluster/-/eslint-config-taskcluster-4.0.0.tgz#746e5cd2274627abc3cf6e2da7a1f18b01b96912"
   integrity sha512-gM66+M9DFvaTlybIUB8jf0tzBm8uFKMbV8KB0oYzZNeYdQ1NsHK5bzYdTisam+3dabWjTeurc0zPo4KgwM7Mkg==
@@ -1406,7 +1406,7 @@ mkdirp@0.5.1, mkdirp@^0.5.0, mkdirp@^0.5.1:
   dependencies:
     minimist "0.0.8"
 
-mocha@^6.0.2:
+mocha@6.0.2:
   version "6.0.2"
   resolved "https://registry.yarnpkg.com/mocha/-/mocha-6.0.2.tgz#cdc1a6fdf66472c079b5605bac59d29807702d2c"
   integrity sha512-RtTJsmmToGyeTznSOMoM6TPEk1A84FQaHIciKrRqARZx+B5ccJ5tXlmJzEKGBxZdqk9UjpRsesZTUkZmR5YnuQ==
