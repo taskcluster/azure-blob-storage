@@ -208,9 +208,9 @@ that use older versions.
 When a blob is loaded, it is validated against the schema with which it was
 stored.
 
-When a blob is written (via `create`, `modify`, or `append`), it is validated
-against the current schema. Thus operations that modify an existing blob are
-responsible for detecting and "upgrading" any old data structures.
+When a blob is written (via `create`), it is validated against the current
+schema.  However, note that an existing object cannot be modified to a more
+recent schema version.  This is [a bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1534446).
 
 ### DataBlockBlob and AppendDataBlob
 
