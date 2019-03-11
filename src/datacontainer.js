@@ -68,9 +68,11 @@ class DataContainer {
     // after the ajv schema compile
     this._validateFunctionMap = {};
 
-    this.schema      = options.schema;
     this.schemaVersion = options.schemaVersion? options.schemaVersion : 1;
-    this.schema.$id = this._getSchemaId(this.schemaVersion);
+    this.schema = this._canonicalSchema({
+      ...options.schema,
+      $id: this._getSchemaId(this.schemaVersion),
+    });
 
     this.validator   = Ajv({
       useDefaults: true,
@@ -94,6 +96,18 @@ class DataContainer {
   _getSchemaId(schemaVersion) {
     return `http://${this.blobService.options.accountId}.blob.core.windows.net/` +
       `${this.name}/.schema.v${schemaVersion}.json`;
+  }
+
+  /**
+   * Return a "canonical" form of this schema.  This is used both on user-supplied and
+   * loaded schemas, and ensures they look the same.
+   */
+  _canonicalSchema(schema) {
+    const {id, $id, ...rest} = schema;
+    return {
+      $id: id || $id,
+      ...rest,
+    };
   }
 
   /**
@@ -126,16 +140,15 @@ class DataContainer {
   }
 
   /**
-   * If the schema was previously saved, this method will make an integrity check, otherwise will save the schema in
-   * a blockBlob.
+   * If the schema was previously saved, this method will ensure it looks the same as the new version.
    * @private
    */
-  async _cacheSchema() {
+  async _checkSchema() {
     let storedSchema;
     let schemaName = this._getSchemaName(this.schemaVersion);
     try {
       let schemaBlob = await this.blobService.getBlob(this.name, schemaName);
-      storedSchema = schemaBlob.content;
+      storedSchema = this._canonicalSchema(JSON.parse(schemaBlob.content));
     } catch (error) {
       if (error.code === 'BlobNotFound') {
         await this._saveSchema();
@@ -145,8 +158,8 @@ class DataContainer {
     }
 
     // integrity check
-    if (storedSchema !== JSON.stringify(this.schema)) {
-      throw new SchemaIntegrityCheckError('The stored schema is not the same with the schema defined.');
+    if (!_.isEqual(storedSchema, this.schema)) {
+      throw new SchemaIntegrityCheckError('The stored schema is not the same as the schema defined.');
     }
   }
 
@@ -174,12 +187,7 @@ class DataContainer {
         // load the schema
         try {
           let schemaBlob = await this.blobService.getBlob(this.name, this._getSchemaName(schemaVersion));
-          let schema = JSON.parse(schemaBlob.content);
-          // upgrade to a v6 schema
-          if (schema.id && !schema.$id) {
-            schema.$id = schema.id;
-            delete schema.id;
-          }
+          let schema = this._canonicalSchema(JSON.parse(schemaBlob.content));
           // cache the ajv validate function
           this._validateFunctionMap[schemaVersion] = this.validator.compile(schema);
         } catch (error) {
@@ -191,6 +199,7 @@ class DataContainer {
     let result = {
       valid: ajvValidate(content),
       errors: ajvValidate.errors,
+      errorsText: this.validator.errorsText(ajvValidate.errors, {separator: '; '}),
     };
 
     return result;
@@ -201,7 +210,7 @@ class DataContainer {
     await this.ensureContainer();
 
     // cache the JSON schema
-    await this._cacheSchema();
+    await this._checkSchema();
   }
 
   /**
