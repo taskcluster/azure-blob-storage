@@ -206,7 +206,7 @@ class DataBlockBlob extends DataBlob {
     assert(modifier instanceof Function, 'The `modifier` must be a function.');
 
     // Attempt to modify this object
-    let attemptsLeft = this.container.updateRetries;
+    let attempts = 0;
 
     let modifiedContent;
     let attemptModify = async () => {
@@ -237,13 +237,13 @@ class DataBlockBlob extends DataBlob {
         }
 
         // Decrement number of attempts left
-        attemptsLeft -= 1;
-        if (attemptsLeft === 0) {
+        attempts += 1;
+        if (attempts === this.container.updateRetries) {
           debug('ERROR: the maximum number of retries exhausted, we might have congestion');
           throw new CongestionError('the maximum number of retries exhausted, check for congestion');
         }
 
-        await sleep(computeDelay(attemptsLeft,
+        await sleep(computeDelay(attempts,
           this.container.updateDelayFactor,
           this.container.updateRandomizationFactor,
           this.container.updateMaxDelay));
