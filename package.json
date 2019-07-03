@@ -1,6 +1,6 @@
 {
   "name": "azure-blob-storage",
-  "version": "4.1.1",
+  "version": "4.2.0",
   "author": "Elena Solomon <elenasolomon28@gmail.com>",
   "description": "azure-blob-storage",
   "scripts": {
