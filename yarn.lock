@@ -430,10 +430,10 @@ external-editor@^3.0.3:
     iconv-lite "^0.4.24"
     tmp "^0.0.33"
 
-fast-azure-storage@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/fast-azure-storage/-/fast-azure-storage-3.0.0.tgz#2ce9215cf689880c0da7ff9e9fe8ba0a2c34b4ad"
-  integrity sha512-FuTjko5uyGuXieX3VBTqxFJrZS7oAPSIeyZt2m9GjcvWA4aljZ95VBhaQeCwIYqMZkDsI0qRIcZWjs4Cla8v5w==
+fast-azure-storage@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/fast-azure-storage/-/fast-azure-storage-3.0.1.tgz#1d69fde6cfe3d0475a150ae13148d91a5512cf8e"
+  integrity sha512-NEtsh6yVPDNyYXaUScRrZFiCLlAxWmkG/7SkWTSd9skDAW4qtouc7xiy2J4b9ZtPR9zge6Vf54zuLGu5uQeyrg==
   dependencies:
     debug "^4.1.1"
     xml2js "^0.4.19"
