@@ -57,15 +57,9 @@ suite('Azure Blob Storage - Data Container Version Support', () => {
     if (dataContainerV1) {
       await dataContainerV1.removeContainer();
     }
-    if (dataContainerV2) {
-      await dataContainerV2.removeContainer();
-    }
 
     if (logContainerV1) {
       await logContainerV1.removeContainer();
-    }
-    if (logContainerV2) {
-      await logContainerV2.removeContainer();
     }
   });
 
