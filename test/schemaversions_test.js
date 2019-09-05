@@ -17,7 +17,7 @@ suite('Schema Versioning', () => {
   });
 
   const setupContainer = async (credentials) => {
-    const containerName = `data-container-test${uuid.v4()}`;
+    const containerName = `azure-blob-storage-test-${uuid.v4()}`;
     const blobService = new azure.Blob(credentials);
     await blobService.createContainer(containerName);
 

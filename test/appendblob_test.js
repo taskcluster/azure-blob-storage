@@ -6,7 +6,7 @@ const {DataContainer, AppendDataBlob} = require('../');
 
 suite('Azure Blob Storage - Append Data Blob Tests', () => {
   let dataContainer;
-  const containerName = `container-blob-append-test${uuid.v4()}`;
+  const containerName = `azure-blob-storage-test-${uuid.v4()}`;
   const blobNamePrefix = 'blob';
 
   suiteSetup(async () => {

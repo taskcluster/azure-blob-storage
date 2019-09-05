@@ -6,8 +6,8 @@ const {DataContainer, DataBlockBlob} = require('../');
 
 suite('Azure Blob Storage - Data Container Version Support', () => {
 
-  let containerName = `${uuid.v4()}`;
-  let logContainerName = `${uuid.v4()}`;
+  let containerName = `azure-blob-storage-test-${uuid.v4()}`;
+  let logContainerName = `azure-blob-storage-test-${uuid.v4()}`;
   let blobV1Name = 'blobV1';
   let blobV2Name = 'blobV2';
   let appendBlobName = 'appendBlob';
