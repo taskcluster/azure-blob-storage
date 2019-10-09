@@ -335,5 +335,4 @@ Load the content of the underlying blob.
 
 # Testing
 
-To test this library, set the environment variables `AZURE_ACCOUNT_KEY` and
-`AZURE_ACCOUNT_ID` appropriately before running the tests.
+To test this library, set the environment variables `AZURE_ACCOUNT_KEY` and `AZURE_ACCOUNT` appropriately before running the tests.
