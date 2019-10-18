@@ -1334,7 +1334,7 @@ table@^5.2.3:
     slice-ansi "^2.1.0"
     string-width "^3.0.0"
 
-taskcluster-client@^19.0.0:
+taskcluster-client@19.0.0:
   version "19.0.0"
   resolved "https://registry.yarnpkg.com/taskcluster-client/-/taskcluster-client-19.0.0.tgz#a432ed1b6eda19e718d81daf9466eeae79890d33"
   integrity sha512-RVz4aZL16v8m0+ICt7MR/NrGo70z/AyAami2auYaingS7yEz82JpKk9qnKbF5oCs4NptacasHpndM/lhe01krw==
