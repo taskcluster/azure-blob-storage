@@ -1441,10 +1441,10 @@ table@^5.2.3:
     slice-ansi "^2.1.0"
     string-width "^3.0.0"
 
-taskcluster-client@24.3.1:
-  version "24.3.1"
-  resolved "https://registry.yarnpkg.com/taskcluster-client/-/taskcluster-client-24.3.1.tgz#f1aa4fd9bdf76e40aa1cfc2b0b7721c53934b19c"
-  integrity sha512-WO/k/4+tkrHZBNQvQzRjNZZRHlZQPpIVxPnxiTCRlFOvMpbR4G6vgPFGYo8so5+fSbPzDTPWFtZkdzv2s+OZmw==
+taskcluster-client@25.2.0:
+  version "25.2.0"
+  resolved "https://registry.yarnpkg.com/taskcluster-client/-/taskcluster-client-25.2.0.tgz#c4ac523442dbca957f6e7e78e07a7db0fa6ee213"
+  integrity sha512-ZxGdRi9ygztFNGY1yQTQkVfSaOvgBZROgZLzHu9bqGWVq6BWNWhaxSiM/NaxpLH11uWWS2npObWUYsR2983WsA==
   dependencies:
     "@hapi/hawk" "^7.1.2"
     debug "^4.1.1"
