@@ -30,13 +30,5 @@
     "lodash": "^4.17.11",
     "uuid": "^7.0.0"
   },
-  "main": "./src/index",
-  "renovate": {
-    "extends": [
-      "config:base"
-    ],  
-    "packageRules": [
-      {"packageNames": "taskcluster-client", "updateTypes": "major"}
-    ]
-  }
+  "main": "./src/index"
 }
