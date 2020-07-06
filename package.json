@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "assume": "2.2.0",
-    "eslint": "7.3.1",
+    "eslint": "7.4.0",
     "eslint-config-taskcluster": "4.0.0",
     "mocha": "8.0.1",
     "taskcluster-client": "31.0.0"
