@@ -21,7 +21,7 @@
     "eslint": "7.5.0",
     "eslint-config-taskcluster": "4.0.0",
     "mocha": "8.0.1",
-    "taskcluster-client": "34.0.1"
+    "taskcluster-client": "35.0.0"
   },
   "dependencies": {
     "ajv": "^6.10.0",
