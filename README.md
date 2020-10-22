@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/taskcluster/azure-blob-storage.svg?branch=master)](https://travis-ci.org/taskcluster/azure-blob-storage)
-
 ## azure-blob-storage
 
 This library wraps an Azure Blob Storage container which stores objects in JSON format.
