@@ -211,10 +211,10 @@ argparse@^1.0.7:
   dependencies:
     sprintf-js "~1.0.2"
 
-assume@2.2.0:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/assume/-/assume-2.2.0.tgz#53146f801fb3d0ac64534dcb31e2659cc985a062"
-  integrity sha512-R4SMWjVwnwKtd1W3rt7h/Csd6+CxGBG+w7Cd93TBWBUqOOG5rt364LeXPjfntkx5np2zp+d+fc5KrdgvIuCJuw==
+assume@2.3.0:
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/assume/-/assume-2.3.0.tgz#3fd296dbc92a3872c3d449fea561d39c5e46d48f"
+  integrity sha512-Pv24RxCZMXe5ZXXZqMqEWMVtPByjzxN4VQ+Yh0nRiChxUlR8vrSEQLqG11xVuzU14MEv9c1xOfREhPcQmH2+dg==
   dependencies:
     deep-eql "^3.0.1"
     fn.name "^1.0.1"
