@@ -20,7 +20,7 @@
     "assume": "2.3.0",
     "eslint": "7.14.0",
     "eslint-config-taskcluster": "4.0.0",
-    "mocha": "8.2.0",
+    "mocha": "8.2.1",
     "taskcluster-client": "37.0.0"
   },
   "dependencies": {
